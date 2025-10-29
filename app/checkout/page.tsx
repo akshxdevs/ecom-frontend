@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSellerPubkey } from "../cart/page";
 import { Appbar } from "../Components/Appbar";
-import { initMint } from "@/sdk/mint";
+import { Escrow } from "@/sdk/mint";
 
 export default function(){
     const [totalAmount,setTotalAmount] = useState<number>(0);
@@ -46,6 +46,7 @@ export default function(){
     },[]);
 
     const handlePayment = async() => {
+        const escrow = new Escrow(walletAdapter);
         if (!sellerPubkey) {
             toast.error("Seller information not available");
             return;
@@ -59,7 +60,7 @@ export default function(){
             return;
         }
         try {
-            const result = await initMint(walletAdapter as AnchorWallet,walletAdapter.publicKey,new PublicKey(sellerPubkey));
+            const result = await escrow.initMint(walletAdapter as AnchorWallet,walletAdapter.publicKey,new PublicKey(sellerPubkey));
             if (result.success) {
                 console.log("Mint Details: ",result);
             } else {
