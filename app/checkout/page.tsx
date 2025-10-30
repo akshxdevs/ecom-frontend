@@ -108,15 +108,35 @@ export default function PaymentPage() {
         toast.success("Withdrawal Successful...");
         setWithdraw(false);
         setShowConfirmation(false);
-        await escrow.initOrder(walletAdapter as AnchorWallet).then((res)=>{
+        try {
+          const res = await escrow.initOrder(walletAdapter as AnchorWallet);
+        
           if (res.success) {
-            toast.success("Order Placed Successfully..");
-            if(res.payment) setPaymentPda(new PublicKey(res.payment));
-            if(res.order)setOrderPda(new PublicKey(res.order));
-          }else{
-            toast.error(`Order failed ${res.error}`)
+            toast.success("Order Placed Successfully.");
+        
+            if (res.payment) setPaymentPda(new PublicKey(res.payment));
+            if (res.order) setOrderPda(new PublicKey(res.order));
+        
+            try {
+              const closeRes = await escrow.closePayment(walletAdapter as AnchorWallet);
+              if (closeRes.success) {
+                toast.success("Payment Closed");
+              } else {
+                toast.error("Failed to close payment.");
+              }
+            } catch (err: any) {
+              toast.error(`Failed to close payment: ${err.message}`);
+            }
+        
+          } else {
+            toast.error(`Order failed: ${res.error}`);
           }
-        })
+        
+        } catch (err: any) {
+          console.error(err);
+          toast.error(`Order failed: ${err.message}`);
+        }
+        
       } else {
         throw new Error(res.error);
       }
