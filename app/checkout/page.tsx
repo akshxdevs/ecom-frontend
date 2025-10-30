@@ -49,6 +49,7 @@ export default function PaymentPage() {
       );
       if (!result.success) throw new Error(result.error);
 
+      ;(window as any).__last_mint = result.mint
       toast.success("Minted Successfully");
       console.log("Mint Details:", result);
 
@@ -65,14 +66,15 @@ export default function PaymentPage() {
         walletAdapter as AnchorWallet,
         new PublicKey(sellerPubkey),
         walletAdapter.publicKey,
-        totalAmount
+        totalAmount,
+        new PublicKey(result.mint)
       );
       if (!initEscrow.success) throw new Error(initEscrow.error);
 
       toast.success("Escrow Initialized Successfully");
       console.log("Escrow Details:", initEscrow.escrowPda);
 
-      const deposit = await escrow.initEscrowDeposite(1, walletAdapter as AnchorWallet);
+      const deposit = await escrow.initEscrowDeposite(1, walletAdapter as AnchorWallet, new PublicKey(result.mint));
       if (!deposit.success) throw new Error(deposit.error);
 
       toast.success("Funds Deposited Successfully");
@@ -91,14 +93,17 @@ export default function PaymentPage() {
     if (!walletAdapter?.publicKey || !sellerPubkey) return;
     const escrow = new Escrow(walletAdapter);
     try {
+      const mintStr = (window as any).__last_mint as string | undefined;
+      if (!mintStr) throw new Error("Mint not found. Please run payment again.");
       const res = await escrow.initEscrowWithdraw(
         1,
         walletAdapter as AnchorWallet,
-        new PublicKey(sellerPubkey)
+        new PublicKey(sellerPubkey),
+        new PublicKey(mintStr)
       );
 
       if (res.success) {
-        toast.success("Withdrawal Successful ✅");
+        toast.success("Withdrawal Successful..");
         setWithdraw(false);
         setShowConfirmation(false);
       } else {
