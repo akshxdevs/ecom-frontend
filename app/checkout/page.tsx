@@ -1,7 +1,7 @@
 "use client";
 import { AnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { useSellerPubkey } from "../cart/page";
 import { Appbar } from "../Components/Appbar";
@@ -17,7 +17,7 @@ export default function PaymentPage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
-
+  const mintRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     setIsClient(true);
     try {
@@ -51,10 +51,9 @@ export default function PaymentPage() {
       );
       if (!result.success) throw new Error(result.error);
 
-      ;(window as any).__last_mint = result.mint
-      toast.success("Minted Successfully");
+      toast.success(String(result.mint));
       console.log("Mint Details:", result);
-
+      mintRef.current = result.mint;
       const payment = await escrow.initPayment(
         walletAdapter as AnchorWallet,
         totalAmount
@@ -70,13 +69,16 @@ export default function PaymentPage() {
         walletAdapter.publicKey,
         totalAmount,
         new PublicKey(result.mint)
+
       );
       if (!initEscrow.success) throw new Error(initEscrow.error);
 
       toast.success("Escrow Initialized Successfully");
       console.log("Escrow Details:", initEscrow.escrowPda);
 
-      const deposit = await escrow.initEscrowDeposite(1, walletAdapter as AnchorWallet, new PublicKey(result.mint));
+      const deposit = await escrow.initEscrowDeposite(1, 
+        walletAdapter as AnchorWallet, 
+        new PublicKey(result.mint));
       if (!deposit.success) throw new Error(deposit.error);
 
       toast.success("Funds Deposited Successfully");
@@ -93,24 +95,21 @@ export default function PaymentPage() {
 
   const handleWithdraw = useCallback(async () => {
     if (!walletAdapter?.publicKey || !sellerPubkey) return;
+    if (!mintRef.current) return toast.error("Mint address not found — please initialize payment first");
     const escrow = new Escrow(walletAdapter);
     try {
-      const mintStr = (window as any).__last_mint as string | undefined;
-      if (!mintStr) throw new Error("Mint not found. Please run payment again.");
       const res = await escrow.initEscrowWithdraw(
         1,
         walletAdapter as AnchorWallet,
         new PublicKey(sellerPubkey),
-        new PublicKey(mintStr)
+        new PublicKey(mintRef.current),
       );
-
       if (res.success) {
         toast.success("Withdrawal Successful...");
         setWithdraw(false);
         setShowConfirmation(false);
         try {
           const res = await escrow.initOrder(walletAdapter as AnchorWallet);
-        
           if (res.success) {
             toast.success("Order Placed Successfully.");
         
@@ -151,6 +150,23 @@ export default function PaymentPage() {
     if (withdraw) handleWithdraw();
   }, [withdraw, handleWithdraw]);
 
+  const handleCancelPayment = async() => {
+    const escrow = new Escrow(walletAdapter);
+    try {
+      const closeRes = await escrow.closePayment(
+        walletAdapter as AnchorWallet,);
+          if (closeRes.success) {
+            toast.success("Payment Closed");
+          } else {
+            console.error(closeRes.error);
+            toast.error("Failed to close payment.");
+          }
+        } catch (err: any) {
+          toast.error(`Failed to close payment: ${err.message}`);
+        }
+    
+    }
+
   return (
     <div>
       <Appbar />
@@ -185,6 +201,12 @@ export default function PaymentPage() {
             Confirm Payment
           </button>
         )}
+          <button
+            className="py-2 px-4 border rounded-lg font-normal bg-white text-black hover:bg-gray-100"
+            onClick={handleCancelPayment}
+          >
+            Cancel Payment
+          </button>
       </div>
     </div>
   );
