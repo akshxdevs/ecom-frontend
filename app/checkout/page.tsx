@@ -12,6 +12,8 @@ export default function PaymentPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [isClient, setIsClient] = useState(false);
   const [withdraw, setWithdraw] = useState(false);
+  const [orderPda,setOrderPda] = useState<PublicKey | undefined>(undefined);
+  const [paymentPda,setPaymentPda] = useState<PublicKey | undefined>(undefined);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
@@ -103,9 +105,18 @@ export default function PaymentPage() {
       );
 
       if (res.success) {
-        toast.success("Withdrawal Successful..");
+        toast.success("Withdrawal Successful...");
         setWithdraw(false);
         setShowConfirmation(false);
+        await escrow.initOrder(walletAdapter as AnchorWallet).then((res)=>{
+          if (res.success) {
+            toast.success("Order Placed Successfully..");
+            if(res.payment) setPaymentPda(new PublicKey(res.payment));
+            if(res.order)setOrderPda(new PublicKey(res.order));
+          }else{
+            toast.error(`Order failed ${res.error}`)
+          }
+        })
       } else {
         throw new Error(res.error);
       }
