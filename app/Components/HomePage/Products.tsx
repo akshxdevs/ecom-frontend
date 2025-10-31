@@ -217,14 +217,14 @@ export const Products = () => {
           {products.map((product, index) => (
             <motion.div
               key={product.pubkey}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+              onClick={() => router.push(`/product/${product.pubkey}`)}
+              className="border p-2 border-zinc-900 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <div
-                onClick={() => router.push(`/product/${product.pubkey}`)}
-                className="h-48 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center"
+                className="h-48 flex items-center justify-center"
               >
                 {product.productImgurl ? (
                   <img
@@ -232,70 +232,20 @@ export const Products = () => {
                       product.productImgurl || "https://example.com/iphone.jpg"
                     }
                     alt={product.productName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-xl hover:scale-110 transition-all duration-300 ease-in-out"
                   />
                 ) : (
-                  <div className="text-gray-400 text-6xl">📦</div>
+                  <div className="text-6xl">📦</div>
                 )}
               </div>
-
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-bold text-gray-800">
+              <div className="py-4">
+                <div className="flex flex-col px-1">
+                  <h3 className="text-md font-normal">
                     {product.productName}
                   </h3>
-                  <span className="text-2xl font-bold text-purple-600">
+                  <span className="text-lg font-bold">
                     {Math.round(product.price / 100)} $
                   </span>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {product.productShortDescription}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                    {getCategoryName(product.category)}
-                  </span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                    {getDivisionName(product.division)}
-                  </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      getStockStatus(product.stockStatus) === "InStock"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {getStockStatus(product.stockStatus)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="w-full border">
-                    <button
-                      onClick={() =>
-                        handleAddToCart(
-                          product.sellerPubkey.toString(),
-                          product.productName,
-                          quantities[product.pubkey || 1],
-                          Number(product.price),
-                          product.productImgurl
-                        )
-                      }
-                      className="w-full py-2 rounded-lg bg-zinc-800 font-semibold text-slate-100 shadow-md shadow-black"
-                    >
-                      Add To Cart
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2 text-black">
-                    <button onClick={()=>handleInc(product.pubkey)}>
-                      <PlusCircleIcon />
-                    </button>
-                    <p>{quantities[product.pubkey || 1]}</p>
-                    <button onClick={()=>handleDinc(product.pubkey)}>
-                      <MinusCircleIcon />
-                    </button>
-                  </div>
                 </div>
               </div>
             </motion.div>
