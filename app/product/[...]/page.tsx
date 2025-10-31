@@ -10,6 +10,11 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
+import { ProductsAppBar } from "@/app/Components/HomePage/ProductsAppBar";
+import localFont from "next/font/local";
+import { BiDownArrow } from "react-icons/bi";
+import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
+
 interface Product {
   pubkey: string;
   productId: number[];
@@ -26,6 +31,10 @@ interface Product {
   stockStatus: any;
 }
 
+
+
+
+
 export default function () {
   const params = useParams();
   const productPubkey = Array.isArray(params[""])
@@ -36,6 +45,23 @@ export default function () {
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [quantities, setQuantities] = useState<{[key:string]:number}>({});
+
+
+  const handleInc = (pubkey:string) => {
+    setQuantities(prev => ({
+      ...prev,
+      [pubkey]: (prev[pubkey] || 0) + 1,
+    }));
+  };
+
+  const handleDinc = (pubkey:string) => {
+    setQuantities(prev =>({
+      ...prev,
+      [pubkey]:Math.max((prev[pubkey] ||0) -1, 1),
+    }));
+  };
+
 
   const loadCartList = async () => {
     const walletAdapter = {
@@ -64,13 +90,11 @@ export default function () {
           if (!cartKeyObj) continue;
 
           try {
-            // Convert the cart public key
             const cartKey = new PublicKey(cartKeyObj);
             const cartPubkeyString = cartKey.toBase58();
 
             console.log("Cart Key (Pubkey):", cartPubkeyString);
 
-            // Fetch the cart account first
             const cartDetails = await fetchCart(
               cartPubkeyString,
               walletAdapter
@@ -78,11 +102,9 @@ export default function () {
             console.log("Cart details:", cartDetails.data);
 
             if (cartDetails.success && cartDetails.data) {
-              // Now derive the product PDA using seller_pubkey and product_name from cart
               const sellerPubkey = cartDetails.data.sellerPubkey;
               const productName = cartDetails.data.productName;
 
-              // Derive the product PDA
               const productPda = PublicKey.findProgramAddressSync(
                 [
                   Buffer.from("product"),
@@ -94,7 +116,6 @@ export default function () {
 
               console.log("Derived Product PDA:", productPda.toString());
 
-              // Now fetch the actual product
               const productDetails = await fetchProduct(
                 productPda.toString(),
                 walletAdapter
@@ -187,15 +208,63 @@ export default function () {
       setLoading(false);
     }
   };
+  // const myFont = localFont({
+  //   src: '../public/fonts/Palmore.otf',
+  // });
+  // const myFont2 = localFont({
+  //   src: '../public/fonts/PalmoreLight.ttf',
+  // });
   return (
     <div>
       <Appbar />
-      <img src={product?.productImgurl} alt="" />
-      <h1>{product?.productName}</h1>
-      <p>{product?.productShortDescription}</p>
-      <button onClick={handleAddToCart} className="px-4 py-2 border">
-        AddToCart
-      </button>
+      <div className="p-16">
+        <ProductsAppBar/>
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-full h-screen p-10 flex justify-between gap-10"> 
+            <div>
+              <img src={product?.productImgurl} alt=""/>
+            </div>
+            <div className="max-w-1/2 w-full flex flex-col">
+              <h1 className="text-3xl font-bold">{product?.productName}</h1>
+              <p className="text-lg text-gray-300">{Math.floor(Number(product?.price)/100)} $</p>
+              <div className="w-full flex flex-col mt-2">
+                <h1 className="py-1">Color</h1>
+                <button className="flex items-center text-lg font-semibold justify-between border rounded-lg px-4 py-2 mb-5">
+                  Black
+                  <span className="mt-1"><BiDownArrow size={20}/></span>
+                </button>
+              </div>
+              <div className="w-full flex flex-col mb-2">
+                <h1 className="py-1">Storage</h1>
+                <button className="flex items-center text-lg font-semibold justify-between border rounded-lg px-4 py-2 mb-5">
+                  256 Gb
+                  <span className="mt-1"><BiDownArrow size={20}/></span>
+                </button>
+              </div>
+              <div className="flex flex-col justify-between gap-4">
+                <h1>Quantity</h1>
+                <div className="px-4 py-2 w-28 flex items-center gap-2 border rounded-lg">
+                  <button onClick={()=>handleInc(String(product?.pubkey))}>
+                    <PlusCircleIcon />
+                  </button>
+                  <p>{quantities[String(product?.pubkey) || 1]}</p>
+                  <button onClick={()=>handleDinc(String(product?.pubkey))}>
+                    <MinusCircleIcon />
+                  </button>
+                </div>
+              </div>
+              <div className="w-full py-10">
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full py-2 rounded-lg bg-zinc-800 font-semibold text-slate-100"
+                  >
+                    Add To Cart
+                  </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
