@@ -5,7 +5,11 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, clusterApiUrl,LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import localFont from "next/font/local"; 
 
+const myFont = localFont({
+    src: '/../../public/fonts/Palmore.otf',
+});
 
 export const Appbar = () => {
     const { publicKey } = useWallet();
@@ -30,7 +34,7 @@ export const Appbar = () => {
                 <div className="flex justify-between items-center gap-16">
                     <div onClick={()=>router.push("/")} className="flex items-center gap-1">
                         <ShoppingBagIcon size={25}/>
-                        <h1 className={`font-bold text-xl cursor-pointer`}>blockBazzar</h1>
+                        <h1 className={`${myFont.className} font-bold text-5xl cursor-pointer`}>blockBazzar</h1>
                     </div>
                     <div className="w-full flex items-center gap-4">
                         <div className="px-2 flex items-center gap-1 w-[40%] mr-8 border border-transparent outline-none focus:outline-none focus:border-blue-600 bg-[#223351] rounded-md">
