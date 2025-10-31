@@ -7,13 +7,21 @@ import {
   fetchCart,
 } from "@/sdk/program";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { ProductsAppBar } from "@/app/Components/HomePage/ProductsAppBar";
-import localFont from "next/font/local";
 import { BiDownArrow } from "react-icons/bi";
-import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
+import { ArrowDownWideNarrow, Heart, MinusCircleIcon, PlusCircleIcon, ShoppingCart } from "lucide-react";
+import { US } from "country-flag-icons/react/3x2";
+import { useCartLength } from "@/app/Components/HomePage/Products";
+import localFont from "next/font/local";
+
+const myFont = localFont({
+  src: '../../../public/fonts/Palmore.otf',
+});
+const myFont2 = localFont({
+  src: '../../../public/fonts/PalmoreLight.ttf',
+});
 
 interface Product {
   pubkey: string;
@@ -33,8 +41,6 @@ interface Product {
 
 
 
-
-
 export default function () {
   const params = useParams();
   const productPubkey = Array.isArray(params[""])
@@ -46,7 +52,8 @@ export default function () {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [quantities, setQuantities] = useState<{[key:string]:number}>({});
-
+  const router = useRouter();
+  const { cartLength } = useCartLength(); 
 
   const handleInc = (pubkey:string) => {
     setQuantities(prev => ({
@@ -61,7 +68,6 @@ export default function () {
       [pubkey]:Math.max((prev[pubkey] ||0) -1, 1),
     }));
   };
-
 
   const loadCartList = async () => {
     const walletAdapter = {
@@ -208,23 +214,50 @@ export default function () {
       setLoading(false);
     }
   };
-  // const myFont = localFont({
-  //   src: '../public/fonts/Palmore.otf',
-  // });
-  // const myFont2 = localFont({
-  //   src: '../public/fonts/PalmoreLight.ttf',
-  // });
+
+  
   return (
     <div>
       <Appbar />
       <div className="p-16">
-        <ProductsAppBar/>
-        <div className="flex flex-col items-center justify-center">
-          <div className="w-full h-screen p-10 flex justify-between gap-10"> 
+      <div>
+            <div className="flex justify-between ">
             <div>
-              <img src={product?.productImgurl} alt=""/>
+            <h1 className={`${myFont.className} text-6xl`}>
+                Product Detail
+            </h1>
             </div>
-            <div className="max-w-1/2 w-full flex flex-col">
+            <div className="flex items-center gap-3">
+            <div className="flex">
+                <US title="USA" className="w-8 h-8"/>
+                {/* <IN title="India" className="w-8 h-8"/> */}
+                <span className="mt-4"><BiDownArrow size={12}/></span>
+            </div>
+            <div>
+                <button>
+                <Heart size={29}/>
+                </button>
+            </div>
+            <div>
+                <button
+                onClick={() => router.push("/cart")}
+                className="text-white cursor-pointer"
+                >
+                <ShoppingCart size={29}/>
+                </button>
+                <span className="relative text-red-500 font-semibold right-3 bg-white rounded-full px-1.5 py-0.5">
+                {cartLength}
+                </span>
+            </div>
+            </div>
+        </div>
+    </div>        
+    <div className="flex flex-col items-center justify-center">
+          <div className="w-full h-screen p-10 flex justify-between gap-10"> 
+            <div className="max-w-[50%] w-full flex justify-center">
+              <img src={product?.productImgurl} className="rounded-xl"/>
+            </div>
+            <div className="max-w-[40%] w-full flex flex-col">
               <h1 className="text-3xl font-bold">{product?.productName}</h1>
               <p className="text-lg text-gray-300">{Math.floor(Number(product?.price)/100)} $</p>
               <div className="w-full flex flex-col mt-2">
