@@ -8,6 +8,15 @@ import { motion } from "framer-motion";
 import { Appbar } from "../Components/Appbar";
 import { IoBagCheckOutline } from "react-icons/io5";
 import { BiMoney } from "react-icons/bi";
+import localFont from "next/font/local";
+import { Dot, MinusCircleIcon, PlusCircleIcon, Trash } from "lucide-react";
+
+const myFont = localFont({
+  src: '../../public/fonts/Palmore.otf',
+});
+const myFont2 = localFont({
+  src: '../../public/fonts/PalmoreLight.ttf',
+});
 
 interface Cart {
   productName: string;
@@ -66,8 +75,25 @@ export default function Cart() {
   const [loading, setLoading] = useState<boolean>(false);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const {sellerPubkey,setSellerPubkey} = useSellerPubkey();
+  const [quantities,setQuantities] = useState<{[key:string]:number}>({});
   const router = useRouter();
   const { publicKey, signAllTransactions, signTransaction } = useWallet();
+
+
+  const handleInc = (pubkey:string) => {
+    setQuantities(prev => ({
+      ...prev,
+      [pubkey]: (prev[pubkey] || 0) + 1,
+    }));
+  };
+
+  const handleDinc = (pubkey:string) => {
+    setQuantities(prev =>({
+      ...prev,
+      [pubkey]:Math.max((prev[pubkey] ||0) -1, 1),
+    }));
+  };
+
 
   const loadCartList = async () => {
     const walletAdapter = {
@@ -159,49 +185,92 @@ export default function Cart() {
   return (
     <div>
       <Appbar/>
-      <div className="max-w-xl mx-auto flex flex-col gap-4">
-        {cart.map((product, index) => (
+      <div className="flex flex-col p-16">
+      <h1 className={`${myFont.className} text-6xl`}>
+          Your Cart
+      </h1>        
+      {cart.map((product, index) => (
           <motion.div
             key={index}
-            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+            className="border my-5 p-2 border-zinc-900 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <div className="h-48 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
-              {product.productImgurl ? (
-                <img
-                  src={product.productImgurl || "https://example.com/iphone.jpg"}
-                  alt={product.productName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-gray-400 text-6xl">📦</div>
-              )}
-            </div>
-
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-xl font-bold text-gray-800">
-                  {product.productName}
-                </h3>
-                <span className="text-2xl font-bold text-purple-600">
+            <div className="flex items-center justify-between gap-4 p-2">
+              <div className="max-w-[50%] w-full flex flex-col gap-4">
+                <div className="text-md font-normal text-center border-b border-zinc-700 pb-2">
+                  <h1>PRODUCT</h1>
+                </div>
+                <div className="flex gap-14">
+                {product.productImgurl ? (
+                    <img
+                      src={product.productImgurl || "https://example.com/iphone.jpg"}
+                      alt={product.productName}
+                      className="h-32 w-32  object-fill"
+                    />
+                  ) : (
+                    <div className="text-gray-400 text-6xl">📦</div>
+                  )}
+                  <div className="flex flex-col gap-2 ">
+                      <h3 className="text-xl font-semibold text-slate-100">
+                        {product.productName}
+                      </h3>
+                      <p className="text-md font-normal text-slate-300">
+                        $ {Math.floor(Number(product.amount)/100).toFixed(2)} 
+                      </p>
+                      <p className="text-md font-normal text-slate-300">Color: {"Color"}</p>
+                      <p className="text-md font-normal text-slate-300" >Storage: {"256"}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="max-w-[25%] w-full h-[175px] flex flex-col">
+                <h1 className="text-md font-normal text-center border-b border-zinc-700 pb-2">QUANTITY</h1>
+                <div className="flex items-center justify-center h-screen gap-4">
+                  <div className="px-4 py-2 w-28 flex items-center gap-2 border rounded-sm">
+                    <button onClick={()=>handleInc(String(product.productName))}>
+                      <PlusCircleIcon />
+                    </button>
+                    <p>{quantities[String(product?.productName)] || 1}</p>
+                    <button onClick={()=>handleDinc(String(product?.productName))}>
+                      <MinusCircleIcon />
+                    </button>
+                  </div>
+                  <div>
+                    <button><Trash/></button>
+                  </div>
+                </div>
+              </div>
+              <div className="max-w-[25%] w-full h-[175px] flex flex-col">
+                <h1 className="text-md font-normal text-center border-b border-zinc-700 pb-2">TOTAL</h1>
+                <span className="flex justify-center items-center h-screen text-2xl font-bold text-slate-100">
                   {Math.floor(Number(product.amount)/100)} $
                 </span>
               </div>
             </div>
+
           </motion.div>
         ))}
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-200">
-          <BiMoney/>Total Amount: {totalAmount} $
-        </h1>
-        <button onClick={()=>{
-          router.push("/checkout");
-          localStorage.setItem("totalAmount",totalAmount.toString())
-        }} className="cursor-pointer flex items-center justify-center gap-2 my-5 py-2 px-4 border">
-          <span>Check Out</span>
-          <IoBagCheckOutline size={25}/>
-        </button>
+        <div className="relative h-[200px] px-10">
+          <div className="absolute bottom-0 right-0 py-5 px-4">
+            <h1 className="flex items-center gap-1 text-xl font-bold text-slate-200">
+              <Dot size={30}/>Estimated total $ {totalAmount.toFixed(2)}
+            </h1>
+            <div className="pt-6 pb-3">
+              <p className="text-sm text-gray-500">Taxes, discounts and shipping calculated at</p>
+              <p className="text-sm text-gray-500 flex justify-end">checkout.</p>
+            </div>
+            <button
+              onClick={() => {
+                router.push("/checkout");
+                localStorage.setItem("totalAmount", totalAmount.toString());
+              }}
+              className="w-full cursor-pointer flex items-center justify-center gap-2 py-1 border bg-white rounded-lg text-black font-semibold"
+            >
+              Check Out
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
