@@ -33,8 +33,8 @@ export const Appbar = () => {
             <div className="max-w-7xl w-full mx-auto p-2">
                 <div className="flex justify-between items-center gap-16">
                     <div onClick={()=>router.push("/")} className="flex items-center gap-1">
-                        <ShoppingBagIcon size={25}/>
-                        <h1 className={`${myFont.className} font-bold text-5xl cursor-pointer`}>blockBazzar</h1>
+                        <ShoppingBagIcon size={20}/>
+                        <h1 className={`${myFont.className} font-bold text-3xl cursor-pointer text-blue-300`}>blockBazzar</h1>
                     </div>
                     <div className="w-full flex items-center gap-4">
                         <div className="px-2 flex items-center gap-1 w-[40%] mr-8 border border-transparent outline-none focus:outline-none focus:border-blue-600 bg-[#223351] rounded-md">
