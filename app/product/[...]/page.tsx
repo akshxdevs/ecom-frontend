@@ -247,7 +247,7 @@ export default function () {
                   <button onClick={()=>handleInc(String(product?.pubkey))}>
                     <PlusCircleIcon />
                   </button>
-                  <p>{quantities[String(product?.pubkey) || 1]}</p>
+                  <p>{quantities[String(product?.pubkey)] || 1}</p>
                   <button onClick={()=>handleDinc(String(product?.pubkey))}>
                     <MinusCircleIcon />
                   </button>
