@@ -32,12 +32,12 @@ body {
 
 #nprogress .bar {
   position: fixed;
-  top: 0; /* 👈 ensures it's at the top */
+  top: 0; 
   left: 0;
   width: 100%;
   height: 3px;
   background: linear-gradient(to right, #3b82f6, #9333ea);
-  z-index: 9999; /* 👈 keeps it above everything */
+  z-index: 9999; 
   border-radius: 2px;
 }
 
