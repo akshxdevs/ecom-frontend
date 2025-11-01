@@ -244,7 +244,7 @@ export const Products = () => {
                     {product.productName}
                   </h3>
                   <span className="text-lg font-bold">
-                    {Math.round(product.price / 100)} $
+                    $ {Math.round(product.price / 100)}
                   </span>
                 </div>
               </div>
