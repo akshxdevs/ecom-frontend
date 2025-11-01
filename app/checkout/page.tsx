@@ -11,6 +11,8 @@ import { ArrowLeft, ArrowRightIcon, ArrowRightToLine, Dice1Icon, Dot, ShoppingBa
 import { useRouter } from "next/navigation";
 import { BiCubeAlt, BiSolidCube } from "react-icons/bi";
 import SolanaPayQR from "../Components/SolanaPayQR";
+import { MdDone } from "react-icons/md";
+import { motion } from "framer-motion";
 
 export default function PaymentPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
@@ -19,6 +21,7 @@ export default function PaymentPage() {
   const [orderPda,setOrderPda] = useState<PublicKey | undefined>(undefined);
   const [paymentPda,setPaymentPda] = useState<PublicKey | undefined>(undefined);
   const [sol,setSol] = useState<String>();
+  const [paymentSuccess,setPaymentSuccess] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
@@ -122,7 +125,7 @@ export default function PaymentPage() {
         
             if (res.payment) setPaymentPda(new PublicKey(res.payment));
             if (res.order) setOrderPda(new PublicKey(res.order));
-        
+            setPaymentSuccess(true);
             try {
               const closeRes = await escrow.closePayment(walletAdapter as AnchorWallet);
               if (closeRes.success) {
@@ -180,12 +183,25 @@ export default function PaymentPage() {
 
           </div>
           <div>
-            <SolanaPayQR recipient={sellerPubkey.toString()} amount={totalAmount}/>
+            <SolanaPayQR recipient={sellerPubkey.toString()} amount={Number(sol)} label="BlockBazzar"/>
           </div>
           <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold">
             <BiSolidCube/>
-            <button onClick={handlePayment}>Pay</button>
+            <button className="cursor-pointer" disabled={true} onClick={handlePayment}>Pay</button>
           </div>
+          {paymentSuccess && (
+            <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold text-green-700 ">
+              <motion.div
+              initial={{opacity:0, y:20}}
+              animate={{opacity:1, y:0}} 
+              transition={{duration:0.2}}
+              className="flex items-center gap-1"
+              >
+                <MdDone/>
+                <button onClick={handlePayment}>Paid</button>
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
     </div>

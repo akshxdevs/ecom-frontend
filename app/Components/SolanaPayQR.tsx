@@ -22,7 +22,6 @@ const SolanaPayQR: React.FC<SolanaPayQRProps> = ({
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
-  // Construct Solana Pay URI
   const solanaUrl = useMemo(() => {
     if (!recipient) return "";
     const params = new URLSearchParams();
@@ -38,7 +37,6 @@ const SolanaPayQR: React.FC<SolanaPayQRProps> = ({
     return `${recipient}${qs ? `?${qs}` : ""}`;
   }, [recipient, amount, label, message, reference, splToken]);
 
-  // Generate QR image
   useEffect(() => {
     if (!solanaUrl) {
       setQrDataUrl("");
@@ -53,7 +51,6 @@ const SolanaPayQR: React.FC<SolanaPayQRProps> = ({
       });
   }, [solanaUrl]);
 
-  // Phantom deeplink (for mobile)
   const phantomUniversalLink = useMemo(() => {
     if (!recipient) return "";
     const params = new URLSearchParams();
@@ -83,7 +80,7 @@ const SolanaPayQR: React.FC<SolanaPayQRProps> = ({
    
   {qrDataUrl ? (
         <a
-          href={phantomUniversalLink || solanaUrl}
+          href={phantomUniversalLink}
           target="_blank"
           rel="noreferrer"
         >
