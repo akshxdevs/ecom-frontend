@@ -10,6 +10,7 @@ import { IoBagCheckOutline } from "react-icons/io5";
 import { BiMoney } from "react-icons/bi";
 import localFont from "next/font/local";
 import { Dot, MinusCircleIcon, PlusCircleIcon, Trash } from "lucide-react";
+import nProgress from "nprogress";
 
 const myFont = localFont({
   src: '../../public/fonts/Palmore.otf',
@@ -261,9 +262,18 @@ export default function Cart() {
               <p className="text-sm text-gray-500 flex justify-end">checkout.</p>
             </div>
             <button
-              onClick={() => {
-                router.push("/checkout");
-                localStorage.setItem("totalAmount", totalAmount.toString());
+              onClick={async() => {
+                nProgress.start();
+                try {
+                  router.push("/checkout");
+                  localStorage.setItem("totalAmount", totalAmount.toString());
+                } catch (error) {
+                  console.error(error);
+                }finally{
+                  setTimeout(() => {
+                    nProgress.done();
+                  }, 300);
+                }
               }}
               className="w-full cursor-pointer flex items-center justify-center gap-2 py-1 border bg-white rounded-lg text-black font-semibold"
             >
