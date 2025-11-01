@@ -5,7 +5,7 @@ import { ProductsAppBar } from "./ProductsAppBar";
 export const Main = () => {
 
   return (
-    <div className="p-16">
+    <div className="px-16 py-4">
       <ProductsAppBar/>
       <Products />
     </div>
