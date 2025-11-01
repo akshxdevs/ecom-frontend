@@ -1,11 +1,13 @@
 "use client";
 import WalletConnect from "./WalletConnect";
-import {  BellIcon, PlusSquareIcon, SearchIcon, ShoppingBagIcon, Wallet2Icon } from "lucide-react";
+import {  BellIcon, HamburgerIcon, Menu, Option, PlusSquareIcon, SearchIcon, ShoppingBagIcon, Wallet2Icon } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, clusterApiUrl,LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import localFont from "next/font/local"; 
+import { CgOptions } from "react-icons/cg";
+import { FaHamburger } from "react-icons/fa";
 
 const myFont = localFont({
     src: '/../../public/fonts/Palmore.otf',
@@ -30,38 +32,41 @@ export const Appbar = () => {
         }
     }
     return (
-            <div className="max-w-7xl w-full mx-auto p-2">
+            <div className="max-w-6xl w-full mx-auto p-2">
                 <div className="flex justify-between items-center gap-16">
                     <div onClick={()=>router.push("/")} className="flex items-center gap-1">
                         <ShoppingBagIcon size={20}/>
-                        <h1 className={`${myFont.className} font-bold text-3xl cursor-pointer text-blue-300`}>blockBazzar</h1>
+                        <h1 className={`${myFont.className} hidden md:block font-bold text-3xl cursor-pointer text-blue-300`}>blockBazzar</h1>
                     </div>
-                    <div className="w-full flex items-center gap-4">
-                        <div className="px-2 flex items-center gap-1 w-[40%] mr-8 border border-transparent outline-none focus:outline-none focus:border-blue-600 bg-[#223351] rounded-md">
+                    <div className="w-full flex items-center gap-2 md:gap-4">
+                        <div className="px-2 md:flex items-center gap-1 w-[35%] outline-none focus:outline-none focus:border-blue-600 md:bg-[#223351] rounded-md">
                             <SearchIcon size={19} className="text-gray-300"/>
                             <input
                                 type="text"
                                 placeholder="Search"
-                                className="w-full text-md py-1 outline-none border-none"
+                                className="hidden md:block w-full text-md py-1 outline-none border-none"
                             />
                         </div>
-                        <button onClick={()=>router.push("/createproduct")} className="flex items-center text-slate-400 gap-2 p-2 text-sm font-semibold border-2 border-blue-900 rounded-lg hover:text-slate-100">
+                        <button onClick={()=>router.push("/createproduct")} className="hidden md:flex items-center text-slate-400 gap-2 p-2 text-sm font-semibold border-2 border-blue-900 rounded-lg hover:text-slate-100">
                             <PlusSquareIcon size={18} />
                             List a product
                         </button>
-                        <button className="flex items-center gap-2 p-2 text-sm font-medium border border-zinc-800 rounded-lg hover:border-blue-900 ">
+                        <button className="hidden md:flex items-center gap-2 p-2 text-sm font-medium border border-zinc-800 rounded-lg hover:border-blue-900 ">
                             <Wallet2Icon size={18} />
                                 $ {balance.toFixed(4)}
                         </button>
-                        <button className="flex items-center gap-2 p-2 text-sm font-medium border border-zinc-800 rounded-lg hover:border-blue-900 ">
+                        <button className="hidden md:flex items-center gap-2 p-2 text-sm font-medium border border-zinc-800 rounded-lg hover:border-blue-900 ">
                             🪙 
                             <p className="px-1">{"0"}</p>
                         </button>
                         <div>
                             <WalletConnect/>
                         </div>
-                        <div className="border p-2 rounded-md border-zinc-800 hover:border-blue-900 ">
+                        <div className="border p-2 rounded-md border-zinc-800 hover:border-blue-900">
                             <BellIcon size={18}/>
+                        </div>
+                        <div className="border p-2 rounded-md border-zinc-800 hover:border-blue-900">
+                            <Menu size={18}/>
                         </div>
                     </div>
                 </div>
