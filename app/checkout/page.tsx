@@ -1,12 +1,16 @@
 "use client";
 import { AnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useSellerPubkey } from "../cart/page";
 import { Appbar } from "../Components/Appbar";
 import { Escrow } from "@/sdk/mint";
 import { getSolPrice } from "../utils/getSolPrice";
+import { ArrowLeft, ArrowRightIcon, ArrowRightToLine, Dice1Icon, Dot, ShoppingBagIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BiCubeAlt, BiSolidCube } from "react-icons/bi";
+import SolanaPayQR from "../Components/SolanaPayQR";
 
 export default function PaymentPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
@@ -14,10 +18,11 @@ export default function PaymentPage() {
   const [withdraw, setWithdraw] = useState(false);
   const [orderPda,setOrderPda] = useState<PublicKey | undefined>(undefined);
   const [paymentPda,setPaymentPda] = useState<PublicKey | undefined>(undefined);
+  const [sol,setSol] = useState<String>();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
-  const mintRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
     setIsClient(true);
     try {
@@ -28,6 +33,7 @@ export default function PaymentPage() {
 
       (async () => {
         const lamports = await getSolPrice(amount);
+        setSol((lamports / LAMPORTS_PER_SOL).toFixed(2));
         console.log("Total Amount (SOL):", (lamports / LAMPORTS_PER_SOL).toFixed(2));
       })();
     } catch (error) {
@@ -51,9 +57,10 @@ export default function PaymentPage() {
       );
       if (!result.success) throw new Error(result.error);
 
-      toast.success(String(result.mint));
+      ;(window as any).__last_mint = result.mint
+      toast.success("Minted Successfully");
       console.log("Mint Details:", result);
-      mintRef.current = result.mint;
+
       const payment = await escrow.initPayment(
         walletAdapter as AnchorWallet,
         totalAmount
@@ -69,18 +76,15 @@ export default function PaymentPage() {
         walletAdapter.publicKey,
         totalAmount,
         new PublicKey(result.mint)
-
       );
       if (!initEscrow.success) throw new Error(initEscrow.error);
 
       toast.success("Escrow Initialized Successfully");
       console.log("Escrow Details:", initEscrow.escrowPda);
 
-      const deposit = await escrow.initEscrowDeposite(1, 
-        walletAdapter as AnchorWallet, 
-        new PublicKey(result.mint));
+      const deposit = await escrow.initEscrowDeposite(1, walletAdapter as AnchorWallet, new PublicKey(result.mint));
       if (!deposit.success) throw new Error(deposit.error);
-
+      setWithdraw(true);
       toast.success("Funds Deposited Successfully");
       console.log("Deposit Details:", deposit.data);
 
@@ -95,21 +99,24 @@ export default function PaymentPage() {
 
   const handleWithdraw = useCallback(async () => {
     if (!walletAdapter?.publicKey || !sellerPubkey) return;
-    if (!mintRef.current) return toast.error("Mint address not found — please initialize payment first");
     const escrow = new Escrow(walletAdapter);
     try {
+      const mintStr = (window as any).__last_mint as string | undefined;
+      if (!mintStr) throw new Error("Mint not found. Please run payment again.");
       const res = await escrow.initEscrowWithdraw(
         1,
         walletAdapter as AnchorWallet,
         new PublicKey(sellerPubkey),
-        new PublicKey(mintRef.current),
+        new PublicKey(mintStr)
       );
+
       if (res.success) {
         toast.success("Withdrawal Successful...");
         setWithdraw(false);
         setShowConfirmation(false);
         try {
           const res = await escrow.initOrder(walletAdapter as AnchorWallet);
+        
           if (res.success) {
             toast.success("Order Placed Successfully.");
         
@@ -150,63 +157,36 @@ export default function PaymentPage() {
     if (withdraw) handleWithdraw();
   }, [withdraw, handleWithdraw]);
 
-  const handleCancelPayment = async() => {
-    const escrow = new Escrow(walletAdapter);
-    try {
-      const closeRes = await escrow.closePayment(
-        walletAdapter as AnchorWallet,);
-          if (closeRes.success) {
-            toast.success("Payment Closed");
-          } else {
-            console.error(closeRes.error);
-            toast.error("Failed to close payment.");
-          }
-        } catch (err: any) {
-          toast.error(`Failed to close payment: ${err.message}`);
-        }
-    
-    }
-
   return (
     <div>
       <Appbar />
       <div className="flex flex-col justify-center items-center h-screen gap-5">
-        <h1>Total Amount: {totalAmount}$</h1>
+        <div className="w-96 flex flex-col justify-between px-6 py-3 bg-slate-50 rounded-xl">
+          <div className="flex justify-start">
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-full flex items-center justify-start gap-1">
+                <ShoppingBagIcon size={20} className="text-zinc-800" />
+                <h1 className="font-bold text-xl text-zinc-800">blockBazzar</h1>
+              </div>
+              <div className="w-full flex flex-col justify-start py-3">
+                <div>
+                  <p className="text-2xl font-bold text-zinc-800">{sol} SOL</p>
+                </div>
+                <p className="inline-flex items-center text-zinc-800 font-bold text-md">
+                  Network<Dot className="-mx-1"/>SOL<span className="text-zinc-400">(SPL)</span>
+                </p>
+              </div>
+            </div>
 
-        <button
-          className={`py-2 px-4 border rounded-lg font-normal ${
-            isClient && sellerPubkey && totalAmount > 0
-              ? "cursor-pointer bg-white text-black hover:bg-gray-100"
-              : "cursor-not-allowed bg-gray-300 text-gray-500"
-          }`}
-          onClick={handlePayment}
-          disabled={!isClient || !sellerPubkey || totalAmount <= 0}
-        >
-          {!isClient
-            ? "Loading..."
-            : !walletAdapter.publicKey
-            ? "Connect Wallet First"
-            : !sellerPubkey
-            ? "Seller Info Missing"
-            : totalAmount <= 0
-            ? "Invalid Amount"
-            : "Proceed to Payment"}
-        </button>
-
-        {showConfirmation && (
-          <button
-            className="py-2 px-4 border rounded-lg font-normal bg-white text-black hover:bg-gray-100"
-            onClick={() => setWithdraw(true)}
-          >
-            Confirm Payment
-          </button>
-        )}
-          <button
-            className="py-2 px-4 border rounded-lg font-normal bg-white text-black hover:bg-gray-100"
-            onClick={handleCancelPayment}
-          >
-            Cancel Payment
-          </button>
+          </div>
+          <div>
+            <SolanaPayQR recipient={sellerPubkey.toString()} amount={totalAmount}/>
+          </div>
+          <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold">
+            <BiSolidCube/>
+            <button onClick={handlePayment}>Pay</button>
+          </div>
+        </div>
       </div>
     </div>
   );

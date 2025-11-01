@@ -29,7 +29,7 @@ export const ProductsAppBar = () => {
             <div className="flex">
                 <US title="USA" className="w-8 h-8"/>
                 {/* <IN title="India" className="w-8 h-8"/> */}
-                <span className="mt-4"><BiDownArrow size={12}/></span>
+                <span className="mt-4"><BiDownArrow size={10}/></span>
             </div>
             <div>
                 <button>

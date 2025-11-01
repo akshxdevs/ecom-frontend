@@ -192,17 +192,17 @@ export default function Cart() {
       {cart.map((product, index) => (
           <motion.div
             key={index}
-            className="border my-5 p-2 border-zinc-900 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+            className=" my-5 p-2 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <div className="flex items-center justify-between gap-4 p-2">
+            <div className="flex items-center justify-between p-2">
               <div className="max-w-[50%] w-full flex flex-col gap-4">
-                <div className="text-md font-normal text-center border-b border-zinc-700 pb-2">
+                <div className="text-sm font-normal text-center border-b border-zinc-700 pb-2">
                   <h1>PRODUCT</h1>
                 </div>
-                <div className="flex gap-14">
+                <div className="flex gap-10">
                 {product.productImgurl ? (
                     <img
                       src={product.productImgurl || "https://example.com/iphone.jpg"}
@@ -212,46 +212,46 @@ export default function Cart() {
                   ) : (
                     <div className="text-gray-400 text-6xl">📦</div>
                   )}
-                  <div className="flex flex-col gap-2 ">
-                      <h3 className="text-xl font-semibold text-slate-100">
+                  <div className="flex flex-col gap-2">
+                      <h3 className="text-lg font-semibold text-slate-100">
                         {product.productName}
                       </h3>
-                      <p className="text-md font-normal text-slate-300">
+                      <p className="text-sm font-normal text-slate-300">
                         $ {Math.floor(Number(product.amount)/100).toFixed(2)} 
                       </p>
-                      <p className="text-md font-normal text-slate-300">Color: {"Color"}</p>
-                      <p className="text-md font-normal text-slate-300" >Storage: {"256"}</p>
+                      <p className="text-sm font-normal text-slate-300">Color: {"Color"}</p>
+                      <p className="text-sm font-normal text-slate-300" >Storage: {"256"}</p>
                   </div>
                 </div>
               </div>
-              <div className="max-w-[25%] w-full h-[175px] flex flex-col">
-                <h1 className="text-md font-normal text-center border-b border-zinc-700 pb-2">QUANTITY</h1>
+              <div className="max-w-[25%] w-full h-[172px] flex flex-col">
+                <h1 className="text-sm font-normal text-center border-b border-l border-r border-zinc-700 pb-2">QUANTITY</h1>
                 <div className="flex items-center justify-center h-screen gap-4">
-                  <div className="px-4 py-2 w-28 flex items-center gap-2 border rounded-sm">
+                  <div className="px-4 py-2 w-28 flex items-center gap-2 border border-zinc-800 rounded-sm">
                     <button onClick={()=>handleInc(String(product.productName))}>
-                      <PlusCircleIcon />
+                      <PlusCircleIcon size={25}/>
                     </button>
                     <p>{quantities[String(product?.productName)] || 1}</p>
                     <button onClick={()=>handleDinc(String(product?.productName))}>
-                      <MinusCircleIcon />
+                      <MinusCircleIcon size={25}/>
                     </button>
                   </div>
                   <div>
-                    <button><Trash/></button>
+                    <button><Trash size={20}/></button>
                   </div>
                 </div>
               </div>
-              <div className="max-w-[25%] w-full h-[175px] flex flex-col">
-                <h1 className="text-md font-normal text-center border-b border-zinc-700 pb-2">TOTAL</h1>
-                <span className="flex justify-center items-center h-screen text-2xl font-bold text-slate-100">
-                  {Math.floor(Number(product.amount)/100)} $
+              <div className="max-w-[25%] w-full h-[172px] flex flex-col">
+                <h1 className="text-sm font-normal text-center border-b border-zinc-700 pb-2">TOTAL</h1>
+                <span className="flex justify-center items-center h-screen text-lg fon-normal text-slate-100">
+                  $ {Math.floor(Number(product.amount)/100).toFixed(2)}
                 </span>
               </div>
             </div>
 
           </motion.div>
         ))}
-        <div className="relative h-[200px] px-10">
+        <div className="relative h-[200px] px-10 border-t border-b border-zinc-800">
           <div className="absolute bottom-0 right-0 py-5 px-4">
             <h1 className="flex items-center gap-1 text-xl font-bold text-slate-200">
               <Dot size={30}/>Estimated total $ {totalAmount.toFixed(2)}
