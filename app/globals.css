@@ -25,3 +25,29 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  position: fixed;
+  top: 0; /* 👈 ensures it's at the top */
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, #3b82f6, #9333ea);
+  z-index: 9999; /* 👈 keeps it above everything */
+  border-radius: 2px;
+}
+
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #3b82f6, 0 0 5px #9333ea;
+  opacity: 1;
+  transform: rotate(3deg) translate(0, -4px);
+}
