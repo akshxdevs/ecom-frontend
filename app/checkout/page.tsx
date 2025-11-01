@@ -14,13 +14,14 @@ import SolanaPayQR from "../Components/SolanaPayQR";
 import { MdDone } from "react-icons/md";
 import { motion } from "framer-motion";
 
+
 export default function PaymentPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [isClient, setIsClient] = useState(false);
   const [withdraw, setWithdraw] = useState(false);
   const [orderPda,setOrderPda] = useState<PublicKey | undefined>(undefined);
   const [paymentPda,setPaymentPda] = useState<PublicKey | undefined>(undefined);
-  const [sol,setSol] = useState<String>();
+  const [sol,setSol] = useState<String | undefined>(undefined);
   const [paymentSuccess,setPaymentSuccess] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const walletAdapter = useWallet();
@@ -183,11 +184,11 @@ export default function PaymentPage() {
 
           </div>
           <div>
-            <SolanaPayQR recipient={sellerPubkey.toString()} amount={Number(sol)} label="BlockBazzar"/>
+            <SolanaPayQR recipient={sellerPubkey.toString()} amount={sol ? Number(sol) : undefined} label="BlockBazzar"/>
           </div>
           <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold">
             <BiSolidCube/>
-            <button className="cursor-pointer" disabled={true} onClick={handlePayment}>Pay</button>
+            <button className="cursor-pointer" onClick={handlePayment}>Pay</button>
           </div>
           {paymentSuccess && (
             <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold text-green-700 ">
