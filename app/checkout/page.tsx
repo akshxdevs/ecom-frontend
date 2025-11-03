@@ -7,9 +7,9 @@ import { useSellerPubkey } from "../cart/page";
 import { Appbar } from "../Components/Appbar";
 import { Escrow } from "@/sdk/mint";
 import { getSolPrice } from "../utils/getSolPrice";
-import { ArrowLeft, ArrowRightIcon, ArrowRightToLine, Dice1Icon, Dot, ShoppingBagIcon } from "lucide-react";
+import { Dot, ShoppingBagIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { BiCubeAlt, BiSolidCube } from "react-icons/bi";
+import { BiSolidCube } from "react-icons/bi";
 import SolanaPayQR from "../Components/SolanaPayQR";
 import { MdDone } from "react-icons/md";
 import { motion } from "framer-motion";
@@ -26,6 +26,7 @@ export default function PaymentPage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
@@ -131,6 +132,7 @@ export default function PaymentPage() {
               const closeRes = await escrow.closePayment(walletAdapter as AnchorWallet);
               if (closeRes.success) {
                 toast.success("Payment Closed");
+                router.push(`/order/${res.order?.toString()}`)
               } else {
                 toast.error("Failed to close payment.");
               }
