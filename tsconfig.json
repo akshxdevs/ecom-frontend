@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "sdk/program.js", "sdk/test.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "sdk/program.js", "sdk/test.js", "app/utils/getSolPrice.js"],
   "exclude": ["node_modules"]
 }
