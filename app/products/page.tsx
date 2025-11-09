@@ -1,5 +1,5 @@
-import { Main } from "next/document";
 import { Appbar } from "../Components/Appbar";
+import { MainPage } from "../Components/HomePage/MainPage";
 
 export default function() {
   return (
@@ -8,7 +8,7 @@ export default function() {
         <Appbar/>
       </div>
       <div>
-        <Main/>
+        <MainPage/>
       </div>
     </div>
   );
