@@ -228,17 +228,17 @@ export default function Cart() {
               <div className="max-w-[25%] w-full h-[172px] flex flex-col">
                 <h1 className="text-sm font-normal text-center border-b border-l border-r border-zinc-700 pb-2">QUANTITY</h1>
                 <div className="flex items-center justify-center h-screen gap-4">
-                  <div className="px-4 py-2 w-28 flex items-center gap-2 border border-zinc-800 rounded-sm">
+                  <div className="px-4 py-2 w-20 flex items-center gap-2 border border-zinc-800 rounded-sm">
                     <button onClick={()=>handleInc(String(product.productName))}>
-                      <PlusCircleIcon size={25}/>
+                      <PlusCircleIcon size={15}/>
                     </button>
                     <p>{quantities[String(product?.productName)] || 1}</p>
                     <button onClick={()=>handleDinc(String(product?.productName))}>
-                      <MinusCircleIcon size={25}/>
+                      <MinusCircleIcon size={15}/>
                     </button>
                   </div>
                   <div>
-                    <button><Trash size={20}/></button>
+                    <button><Trash size={18}/></button>
                   </div>
                 </div>
               </div>
