@@ -51,3 +51,21 @@ body {
   opacity: 1;
   transform: rotate(3deg) translate(0, -4px);
 }
+
+@keyframes slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-slide {
+  display: flex;
+  animation: slide 25s linear infinite;
+}
+
+.animate-slide:hover {
+  animation-play-state: paused;
+}
