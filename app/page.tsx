@@ -3,7 +3,7 @@ import { ArrowRight, ChevronDown, ShoppingBagIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import localFont from "next/font/local"; 
 import { TokenSOL, TokenETH } from '@token-icons/react';
-
+import { InfiniteCryptoSlider } from "./Components/HomePage/CryptoImgeSlider";
 const myFont = localFont({
     src: '../public/fonts/Palmore.otf',
 });
@@ -15,6 +15,7 @@ const bannerFont = localFont({
 const explorebtn = localFont({
   src:'../public/fonts/MartianMono-VariableFont_wdth,wght.ttf',
 });
+
 export default function Home() {
   const router = useRouter();
   return (
@@ -78,8 +79,8 @@ export default function Home() {
           <TokenETH size={40} variant="branded"/>
         </div>
       </div>
-      <div>
-        // cryto image slider
+      <div className="px-32 pt-2 pb-10">
+        <InfiniteCryptoSlider/>
       </div>
     </div>
   );
