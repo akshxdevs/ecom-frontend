@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import localFont from "next/font/local"; 
 import { TokenSOL, TokenETH } from '@token-icons/react';
 import { InfiniteCryptoSlider } from "./Components/HomePage/CryptoImgeSlider";
+import { useEffect, useState } from "react";
+
 const myFont = localFont({
     src: '../public/fonts/Palmore.otf',
 });
@@ -15,6 +17,56 @@ const bannerFont = localFont({
 const explorebtn = localFont({
   src:'../public/fonts/MartianMono-VariableFont_wdth,wght.ttf',
 });
+
+function useScrollParallax({
+  speed = 0.5,               // 0‑1 : how strong the effect is
+  initial = 0,                // starting offset (px)
+}: { speed?: number; initial?: number } = {}) {
+  const [offset, setOffset] = useState(initial);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+
+    const onScroll = () => {
+      const delta = window.scrollY - lastY;          // + = down, - = up
+      lastY = window.scrollY;
+      setOffset((prev) => prev - delta * speed);    // invert delta → up = up
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [speed]);
+
+  return offset;
+}
+
+function FloatingSol() {
+  // 0.4 → icon moves 40 % of the scroll distance
+  const y = useScrollParallax({ speed: 0.4 });
+
+  return (
+    <div
+      className="absolute right-[22%] bottom-44 px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900 transition-transform"
+      style={{ transform: `translateY(${y}px)` }}
+    >
+      <TokenSOL size={40} variant="branded" />
+    </div>
+  );
+}
+
+function FloatingEth() {
+  // 0.4 → icon moves 40 % of the scroll distance
+  const y = useScrollParallax({ speed: 0.4 });
+
+  return (
+    <div
+      className="absolute right-[73%] top-[790px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900"
+      style={{ transform: `translateY(${y}px)` }}
+    >
+      <TokenETH size={40} variant="branded" />
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -72,11 +124,11 @@ export default function Home() {
       </div>
       <div className="flex justify-center items-center py-20 ">
         <img src="/img/banner.png" alt="banner" className="border border-zinc-700 rounded-md h-1/2 w-1/2 object-cover"/>
-        <div className="absolute right-[22%] bottom-44 px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900">
-          <TokenSOL size={40} variant="branded"/>
+        <div>
+          <FloatingSol/>
         </div>
-        <div className="absolute right-[73%] top-[790px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900">
-          <TokenETH size={40} variant="branded"/>
+        <div>
+          <FloatingEth/>
         </div>
       </div>
       <div className="px-32 pt-2 pb-10">
