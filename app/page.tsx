@@ -19,8 +19,8 @@ const explorebtn = localFont({
 });
 
 function useScrollParallax({
-  speed = 0.5,               // 0‑1 : how strong the effect is
-  initial = 0,                // starting offset (px)
+  speed = 0.5,              
+  initial = 0,                
 }: { speed?: number; initial?: number } = {}) {
   const [offset, setOffset] = useState(initial);
 
@@ -28,9 +28,9 @@ function useScrollParallax({
     let lastY = window.scrollY;
 
     const onScroll = () => {
-      const delta = window.scrollY - lastY;          // + = down, - = up
+      const delta = window.scrollY - lastY;         
       lastY = window.scrollY;
-      setOffset((prev) => prev - delta * speed);    // invert delta → up = up
+      setOffset((prev) => prev - delta * speed);    
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -41,7 +41,6 @@ function useScrollParallax({
 }
 
 function FloatingSol() {
-  // 0.4 → icon moves 40 % of the scroll distance
   const y = useScrollParallax({ speed: 0.4 });
 
   return (
