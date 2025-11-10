@@ -45,7 +45,7 @@ function FloatingSol() {
 
   return (
     <div
-      className="absolute right-[22%] bottom-44 px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900 transition-transform"
+      className="absolute right-[22%] bottom-44 lg:bottom-[820px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900 transition-transform"
       style={{ transform: `translateY(${y}px)` }}
     >
       <TokenSOL size={40} variant="branded" />
@@ -54,12 +54,11 @@ function FloatingSol() {
 }
 
 function FloatingEth() {
-  // 0.4 → icon moves 40 % of the scroll distance
   const y = useScrollParallax({ speed: 0.4 });
 
   return (
     <div
-      className="absolute right-[73%] top-[790px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900"
+      className="absolute right-[72%] top-[790px] lg:top-[700px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900"
       style={{ transform: `translateY(${y}px)` }}
     >
       <TokenETH size={40} variant="branded" />
@@ -121,7 +120,7 @@ export default function Home() {
           Explore
         </button>
       </div>
-      <div className="flex justify-center items-center py-20 ">
+      <div className="flex justify-center items-center py-20">
         <img src="/img/banner.png" alt="banner" className="border border-zinc-700 rounded-md h-1/2 w-1/2 object-cover"/>
         <div>
           <FloatingSol/>
@@ -130,8 +129,10 @@ export default function Home() {
           <FloatingEth/>
         </div>
       </div>
-      <div className="px-32 pt-2 pb-10">
-        <InfiniteCryptoSlider/>
+      <div className="relative min-h-screen">
+        <div className="absolute inset-x-0 bottom-0 bg-zinc-900 py-20 top-[-110px]">
+          <InfiniteCryptoSlider />
+        </div>
       </div>
     </div>
   );
