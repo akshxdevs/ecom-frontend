@@ -15,7 +15,7 @@ export const InfiniteCryptoSlider = () => {
       ];
     
     return (
-        <div className="overflow-hidden bg-gradient-to from-zinc-900 to-zinc-800">
+        <div className="w-[75%] mx-40 overflow-hidden bg-gradient-to from-zinc-900 to-zinc-800">
             <div className="flex animate-slide">
                 {cryptoSlider.map((item, index) => (
                 <div
