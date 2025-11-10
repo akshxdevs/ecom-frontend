@@ -41,7 +41,7 @@ function useScrollParallax({
 }
 
 function FloatingSol() {
-  const y = useScrollParallax({ speed: 0.4 });
+  const y = useScrollParallax();
 
   return (
     <div
