@@ -9,7 +9,7 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub password_hash: String,
-    pub role: UserRole,              // field name `role` matches DB column
+    pub role: UserRole,              
     pub created_at: NaiveDateTime,
 }
 
@@ -70,7 +70,6 @@ impl User {
         password_hash: &str,
     ) -> Result<bool, sqlx::Error> {
         if let Some(user) = Self::find_by_username(pool, username).await? {
-            // (In real apps, compare hashed passwords etc.)
             Ok(user.password_hash == password_hash)
         } else {
             Ok(false)
