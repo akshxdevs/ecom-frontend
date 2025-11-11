@@ -1,6 +1,16 @@
 [package]
 name = "api"
 version = "0.0.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
+async-std = { version = "1.12", features = ["attributes"] }
+tokio = { version = "1", features = ["full"] }
+axum = "0.8.3"
+serde = { version = "1", features = ["derive"] }
+tide = "0.16.0"
+hyper = { version = "1.6.0", features = ["full"] }
+store = { path = "../store" }
+chrono = { version = "0.4", features = ["serde"] }
+jsonwebtoken = "9.3.1"
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
