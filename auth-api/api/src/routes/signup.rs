@@ -21,12 +21,11 @@ pub async fn signup_route(
     State(store): State<Arc<Store>>,
     Json(data): Json<CreateUserInput>,
 ) -> impl IntoResponse {
-    // In a real app, hash the password here
-    let password_hash = data.password; // TODO: Hash password
+    let password_hash = data.password; 
     
     match store.sign_up(data.username.clone(), data.email.clone(), password_hash).await {
         Ok(user) => {
-            let secret = "your-secret-key"; // Move to env/config in real app
+            let secret = "your-secret-key"; 
             match generate_jwt(user.id.to_string(), secret) {
                 Ok(token) => {
                     let response = CreateUserOutput {

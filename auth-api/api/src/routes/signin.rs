@@ -20,7 +20,6 @@ pub async fn signin_route(
     State(store): State<Arc<Store>>,
     Json(data): Json<SignInInput>,
 ) -> impl IntoResponse {
-    // In a real app, hash the password here before comparing
     let password_hash = data.password.clone(); // TODO: Hash password
     
     match store.sign_in(data.username.clone(), password_hash).await {

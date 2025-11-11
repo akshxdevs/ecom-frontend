@@ -15,7 +15,6 @@ pub fn generate_jwt(user_id: String, secret: &str) -> Result<String, String> {
         .map_err(|e| format!("Time error: {}", e))?
         .as_secs() as usize;
     
-    // Token expires in 24 hours
     let exp = now + (24 * 60 * 60);
     
     let claims = Claims {
