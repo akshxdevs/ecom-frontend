@@ -45,7 +45,7 @@ function FloatingSol() {
 
   return (
     <div
-      className="absolute right-[22%] bottom-44 lg:bottom-[820px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900 transition-transform"
+      className="absolute right-[22%] bottom-44 lg:bottom-[180px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900 transition-transform"
       style={{ transform: `translateY(${y}px)` }}
     >
       <TokenSOL size={40} variant="branded" />
@@ -58,7 +58,7 @@ function FloatingEth() {
 
   return (
     <div
-      className="absolute right-[72%] top-[790px] lg:top-[700px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900"
+      className="absolute right-[72%] top-[790px] lg:top-[600px] px-4 py-2 rounded-md border border-zinc-800 bg-zinc-900"
       style={{ transform: `translateY(${y}px)` }}
     >
       <TokenETH size={40} variant="branded" />
