@@ -5,22 +5,19 @@ import {
   fetchCartList,
   fetchProduct,
   fetchCart,
-} from "@/sdk/program";
+} from "@/ecom-sdk/program";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { BiDownArrow } from "react-icons/bi";
-import { ArrowDownWideNarrow, Heart, MinusCircleIcon, PlusCircleIcon, ShoppingCart } from "lucide-react";
+import { Heart, MinusCircleIcon, PlusCircleIcon, ShoppingCart } from "lucide-react";
 import { US } from "country-flag-icons/react/3x2";
-import { useCartLength } from "@/app/Components/HomePage/Products";
 import localFont from "next/font/local";
+import { useCartLength } from "@/app/utils/contexts/CartLenContext";
 
 const myFont = localFont({
   src: '../../../public/fonts/Palmore.otf',
-});
-const myFont2 = localFont({
-  src: '../../../public/fonts/PalmoreLight.ttf',
 });
 
 interface Product {
@@ -38,8 +35,6 @@ interface Product {
   rating: number;
   stockStatus: any;
 }
-
-
 
 export default function () {
   const params = useParams();
@@ -85,9 +80,7 @@ export default function () {
 
     try {
       const result = await fetchCartList(walletAdapter);
-      // console.log("Fetch result from cart:", result);
       if (result.success && result.cart) {
-        // console.log("Cart Fetched Successfully: ",result.cart);
         let cartList = result.cart.cartList;
         console.log("Product PublicKey: ", cartList);
 
