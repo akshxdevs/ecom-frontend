@@ -1,5 +1,5 @@
 "use client";
-import { fetchCart, fetchCartList } from "@/sdk/program";
+import { fetchCart, fetchCartList } from "@/ecom-sdk/program";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
