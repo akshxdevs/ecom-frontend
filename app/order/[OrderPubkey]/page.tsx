@@ -5,8 +5,7 @@ import { useEffect } from "react";
 import Lottie from "lottie-react";
 import successAnim from "../../animations/Checkmark.json";
 import localFont from "next/font/local";
-import { BiLeftArrow, BiSolidRightArrow } from "react-icons/bi";
-import { ArrowBigLeftDash, ArrowBigLeftIcon, ArrowRight, ChevronRight } from "lucide-react";
+import {ChevronRight } from "lucide-react";
 
 const myFont = localFont({
   src: '../../../public/fonts/Palmore.otf',
