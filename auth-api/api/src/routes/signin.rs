@@ -20,7 +20,7 @@ pub async fn signin_route(
     State(store): State<Arc<Store>>,
     Json(data): Json<SignInInput>,
 ) -> impl IntoResponse {
-    let password_hash = data.password.clone(); // TODO: Hash password
+    let password_hash = data.password.clone(); 
     
     match store.sign_in(data.username.clone(), password_hash).await {
         Ok(Some(user)) => {
