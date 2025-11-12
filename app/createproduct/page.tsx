@@ -2,10 +2,9 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import {useWallet } from "@solana/wallet-adapter-react";
 import { 
-  fetchAllProducts,
   fetchAllProductsFromSeller,
   initCreateProduct 
-} from "../../sdk/program";
+} from "../../ecom-sdk/program";
 import { motion } from "framer-motion";
 import { Appbar } from "../Components/Appbar";
 import { FaTools } from "react-icons/fa";
@@ -178,7 +177,6 @@ function CreateProductPage(){
         console.log(result);
         console.log("Product PDA:", result.productPda);
         
-        // Reload products to show the new one
         await loadProducts();
       } else {
         setError(result.error || "Failed to create product");
@@ -188,7 +186,6 @@ function CreateProductPage(){
     } catch (err: any) {
       console.error("Error creating product:", err);
       
-      // Handle specific transaction errors
       if (err.message && err.message.includes("already been processed")) {
         setError("Transaction already submitted. Please wait for confirmation.");
       } else if (err.message && err.message.includes("User rejected")) {
