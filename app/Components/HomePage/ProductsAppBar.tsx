@@ -1,11 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Products, useCartLength } from "./Products";
-import { Flag, Heart, IndianRupee, ShoppingCart } from "lucide-react";
-import toast from "react-hot-toast";
+import {Heart, ShoppingCart } from "lucide-react";
 import localFont from "next/font/local";
-import { IN, US } from "country-flag-icons/react/3x2";
+import { US } from "country-flag-icons/react/3x2";
 import { BiDownArrow } from "react-icons/bi";
+import { useCartLength } from "@/app/utils/contexts/CartLenContext";
 
 const myFont = localFont({
   src: '../../../public/fonts/Palmore.otf',

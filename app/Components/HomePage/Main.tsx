@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Products, useCartLength } from "./Products";
+import { Products } from "./Products";
 import { Heart, ShoppingCart } from "lucide-react";
 import localFont from "next/font/local"; 
+import { useCartLength } from "@/app/utils/contexts/CartLenContext";
 
 
 

@@ -1,10 +1,10 @@
 "use client";
-import { AddToCart, fetchAllProducts, fetchCartList } from "@/sdk/program";
+import { fetchAllProducts, fetchCartList } from "@/ecom-sdk/program";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
+import { useCartLength } from "@/app/utils/contexts/CartLenContext";
 
 interface Product {
   pubkey: string;
@@ -22,61 +22,14 @@ interface Product {
   stockStatus: any;
 }
 
-interface CartLengthContextType {
-  cartLength: number;
-  setCartLength: (value: number) => void;
-}
-
-export const CartLengthContext = createContext<
-  CartLengthContextType | undefined
->(undefined);
-
-export const CartLengthProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [cartLength, setCartLength] = useState(0);
-  return (
-    <CartLengthContext.Provider value={{ cartLength, setCartLength }}>
-      {children}
-    </CartLengthContext.Provider>
-  );
-};
-
-export const useCartLength = () => {
-  const context = useContext(CartLengthContext);
-  if (context === undefined) {
-    throw new Error("useCartLength must be used within a CartLengthProvider");
-  }
-  return context;
-};
-
 export const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [quantities, setQuantities] = useState<{[key:string]:number}>({});
+  const [loadingProducts, setLoadingProducts] = useState<boolean>(false);
   const { setCartLength } = useCartLength();
   const router = useRouter();
   const { publicKey, signAllTransactions, signTransaction } = useWallet();
-
-
-  const handleInc = (pubkey:string) => {
-    setQuantities(prev => ({
-      ...prev,
-      [pubkey]: (prev[pubkey] || 0) + 1,
-    }));
-  };
-
-  const handleDinc = (pubkey:string) => {
-    setQuantities(prev =>({
-      ...prev,
-      [pubkey]:Math.max((prev[pubkey] ||0) -1, 1),
-    }));
-  };
-
 
   const loadAllProducts = async () => {
     if (!publicKey) {
@@ -84,7 +37,7 @@ export const Products = () => {
       return;
     }
 
-    setLoading(true);
+    setLoadingProducts(true);
     setError(null);
 
     const walletAdapter = {
@@ -94,8 +47,6 @@ export const Products = () => {
     };
     try {
       const result = await fetchAllProducts(walletAdapter);
-      console.log("Fetch result:", result);
-
       if (result.success && result.products) {
         setProducts(result.products);
       } else {
@@ -108,20 +59,8 @@ export const Products = () => {
       console.log(error);
       setProducts([]);
     } finally {
-      setLoading(false);
+      setLoadingProducts(false);
     }
-  };
-
-  const getCategoryName = (category: any) => {
-    return Object.keys(category)[0] || "Unknown";
-  };
-
-  const getDivisionName = (division: any) => {
-    return Object.keys(division)[0] || "Unknown";
-  };
-
-  const getStockStatus = (stockStatus: any) => {
-    return Object.keys(stockStatus)[0] || "Unknown";
   };
 
   const loadCartList = async () => {
@@ -156,59 +95,70 @@ export const Products = () => {
     }
   };
   
-  useEffect(() => {
-    if (products && products.length > 0) {
-      const initialQuantities = products.reduce((acc, product) => {
-        acc[product.pubkey] = 1;
-        return acc;
-      }, {} as { [key: string]: number });
-
-      setQuantities(initialQuantities);
-    }
-  }, [products]);
 
   useEffect(() => {
     loadCartList();
     loadAllProducts();
   }, [publicKey]);
 
-  const handleAddToCart = async (
-    sellerPubkey: string,
-    productName: string,
-    quantity: number,
-    price: number,
-    productImgurl: string
-  ) => {
-    if (!publicKey) return;
+  const ProductSkeleton = () => (
+    <div className="border p-2 border-zinc-900 rounded-xl shadow-lg overflow-hidden bg-zinc-900/50">
+      <div className="h-48 bg-gradient-to-br from-zinc-800 via-zinc-700 to-zinc-800 rounded-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+      </div>
+      <div className="py-4 space-y-3 px-1">
+        <div className="h-4 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 rounded-md w-3/4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+        </div>
+        <div className="h-6 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 rounded-md w-1/2 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+        </div>
+      </div>
+    </div>
+  );
 
-    try {
-      const walletAdapter = {
-        publicKey,
-        signTransaction,
-        signAllTransactions,
-      };
-      const cart = await AddToCart(
-        walletAdapter,
-        sellerPubkey.toString(),
-        productName,
-        quantity,
-        price,
-        productImgurl
-      );
-      if (cart.success && cart.cartListPda) {
-        console.log("Added To Cart Successfully..");
-      } else {
-        console.log("No products found or error occurred:", cart.error);
-        setProduct(null);
-      }
-    } catch (err: any) {
-      console.error("Error loading products:", err);
-      setError(err.message || "Failed to load products");
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (loadingProducts) {
+    return (
+      <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <motion.div
+              key={`skeleton-${index}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <ProductSkeleton />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error && products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="text-center space-y-4">
+          <div className="text-6xl mb-4">😕</div>
+          <h3 className="text-xl font-semibold text-gray-300">Failed to load products</h3>
+          <p className="text-gray-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (products.length === 0 && !loadingProducts) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="text-center space-y-4">
+          <div className="text-6xl mb-4">📦</div>
+          <h3 className="text-xl font-semibold text-gray-300">No products found</h3>
+          <p className="text-gray-500">Be the first to create a product!</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

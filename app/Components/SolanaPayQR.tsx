@@ -2,14 +2,13 @@
 import React, { useMemo, useState, useEffect } from "react";
 import QRCode from "qrcode";
 
-// Define props with strong types
 interface SolanaPayQRProps {
-  recipient: string;        // base58 public key (required)
-  amount?: number | string; // amount in SOL (optional)
-  label?: string;           // merchant / app name
-  message?: string;         // description / order id
-  reference?: string;       // transaction reference (optional)
-  splToken?: string;        // SPL mint address if not native SOL
+  recipient: string;        
+  amount?: number | string;
+  label?: string;     
+  message?: string;      
+  reference?: string;       
+  splToken?: string;        
 }
 
 const SolanaPayQR: React.FC<SolanaPayQRProps> = ({

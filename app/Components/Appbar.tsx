@@ -1,13 +1,12 @@
 "use client";
 import WalletConnect from "./WalletConnect";
-import {  BellIcon, HamburgerIcon, Menu, Option, PlusSquareIcon, SearchIcon, ShoppingBagIcon, Wallet2Icon } from "lucide-react";
+import {  BellIcon, Menu,  PlusSquareIcon, SearchIcon, ShoppingBagIcon, Wallet2Icon } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Connection, clusterApiUrl,LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, clusterApiUrl } from "@solana/web3.js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import localFont from "next/font/local"; 
-import { CgOptions } from "react-icons/cg";
-import { FaHamburger } from "react-icons/fa";
+
 
 const myFont = localFont({
     src: '/../../public/fonts/Palmore.otf',
