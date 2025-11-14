@@ -20,7 +20,11 @@ export default function PaymentPage() {
   const [isClient, setIsClient] = useState(false);
   const [withdraw, setWithdraw] = useState(false);
   const [orderPda, setOrderPda] = useState<PublicKey | undefined>(undefined);
-  const [paymentPda, setPaymentPda] = useState<PublicKey | undefined>(undefined);
+  const [paymentPda, setPaymentPda] = useState<string | undefined>(undefined);
+  const [escrowPda, setEscrowPda] = useState<PublicKey | undefined>(undefined);
+  const [vaultStatePda, setVaultStatePda] = useState<PublicKey | undefined>(undefined);
+  const [vaultPda, setVaultPda] = useState<PublicKey | undefined>(undefined);
+
   const [sol, setSol] = useState<string | undefined>(undefined);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -58,7 +62,7 @@ export default function PaymentPage() {
     }
   }, []);
 
-  const handlePayment = useCallback(async () => {
+  const handlePayment = (async () => {
     const sellerKey = sellerPubkeyString;
     if (!sellerKey) return toast.error("Seller information not available");
     if (!totalAmount || totalAmount <= 0) return toast.error("Invalid total amount");
@@ -70,100 +74,80 @@ export default function PaymentPage() {
         walletAdapter as AnchorWallet,
         totalAmount
       );
-      if (!payment.success) throw new Error(payment.error);
-
-      toast.success("Payment Initialized Successfully");
-
+      if (payment.success){
+      toast.success("Payment Initialized Successfully")
+      }else{ 
+        throw new Error(payment.error)
+      }
+    } catch (error) {
+      toast.error(`Transaction failed: ${(error as Error).message}`);
+      console.error(error);
+    }
+    try {
       const initEscrow = await escrow.initEscrow(
         walletAdapter as AnchorWallet,
         new PublicKey(sellerKey),
         totalAmount,
       );
-      if (!initEscrow.success) throw new Error(initEscrow.error);
-
-      toast.success("Escrow Initialized Successfully");
-
-      const deposit = await escrow.initEscrowDeposite(1, walletAdapter as AnchorWallet);
-      if (!deposit.success) throw new Error(deposit.error);
-      setWithdraw(true);
-      toast.success("Funds Deposited Successfully");
-      setShowConfirmation(true);
+      if (initEscrow.success){
+        toast.success("Escrow Initialized Successfully")
+        }else{ 
+          throw new Error(initEscrow.error)
+        }
     } catch (error) {
       toast.error(`Transaction failed: ${(error as Error).message}`);
       console.error(error);
     }
-  }, [sellerPubkeyString, totalAmount, walletAdapter]);
-
-  const handleWithdraw = useCallback(async () => {
-    const sellerKey = sellerPubkeyString;
-    if (!walletAdapter?.publicKey || !sellerKey) return;
-    const escrow = new Escrow(walletAdapter);
     try {
-      const res = await escrow.initEscrowWithdraw(
-        1,
-        walletAdapter as AnchorWallet,
-        new PublicKey(sellerKey), 
-      );
-
-      if (res.success) {
-        toast.success("Withdrawal Successful...");
-        setWithdraw(false);
-        setShowConfirmation(false);
-        try {
-          const orderRes = await escrow.initOrder(walletAdapter as AnchorWallet);
-        
-          if (orderRes.success) {
-            toast.success("Order Placed Successfully.");
-        
-            if (orderRes.payment) setPaymentPda(new PublicKey(orderRes.payment));
-            if (orderRes.order) setOrderPda(new PublicKey(orderRes.order));
-            setPaymentSuccess(true);
-            try {
-              const closeRes = await escrow.closeAccounts(walletAdapter as AnchorWallet);
-              if (closeRes.success) {
-                toast.success("Payment & Escrow Accounts Closed");
-                router.push(`/order/${orderRes.order?.toString()}`)
-              } else {
-                toast.error("Failed to close payment.");
-              }
-            } catch (err: any) {
-              toast.error(`Failed to close payment: ${err.message}`);
-            }
-        
-          } else {
-            toast.error(`Order failed: ${orderRes.error}`);
-          }
-        
-        } catch (err: any) {
-          console.error(err);
-          toast.error(`Order failed: ${err.message}`);
+      const deposit = await escrow.initEscrowDeposite(walletAdapter as AnchorWallet);
+      if (deposit.success){
+        toast.success("Payment Done Successfully");
+        if (deposit.payment) setPaymentPda(deposit.payment);
+        if (deposit.escrow) setEscrowPda(new PublicKey(deposit.escrow));
+        if (deposit.vaultState) setVaultStatePda(new PublicKey(deposit.vaultState));
+        if (deposit.vault) setVaultPda(new PublicKey(deposit.vault));
+        await escrow.initOrder(walletAdapter as AnchorWallet).then((order)=>{
+          if (order.success) toast.success("Order Placed Successfully..")
+            const OrderId = order.orderId
+            router.push(`/order/${OrderId}`)
+           setTimeout(() => {
+            closeAccount();
+           }, 10000);
+        }).catch((err)=>{
+          console.log("Order Failed",(err as Error).message);
+          toast.error("Failed to place order..")
+        }); 
+      }else{ 
+          throw new Error(deposit.error)
         }
-        
-      } else {
-        throw new Error(res.error);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Withdrawal failed, please retry");
+    } catch (error) {
+      toast.error(`Transaction failed: ${(error as Error).message}`);
+      console.error(error);
     }
-  }, [walletAdapter, sellerPubkeyString, router]);
+  });
 
-
-  useEffect(() => {
-    if (withdraw) handleWithdraw();
-  }, [withdraw, handleWithdraw]);
-
-  const handleCloseAccount = async() => {
+  const closeAccount = async() => {
     const escrow = new Escrow(walletAdapter);
-    const result = await escrow.closeAccounts(walletAdapter as AnchorWallet);
+    console.log(paymentPda?.toString());
+    console.log(escrowPda?.toString());
+    console.log(vaultStatePda?.toString());
+    console.log(vaultPda?.toString());
+    if (!paymentPda || !escrowPda || !vaultPda || !vaultStatePda) throw new Error("PDA messing...")
+    const result = await escrow.closeAccounts(
+      walletAdapter as AnchorWallet,
+      new PublicKey(paymentPda),
+      new PublicKey(escrowPda),
+      new PublicKey(vaultStatePda),
+      new PublicKey(vaultPda),
+    );
     if (result.success) {
       toast.success("PDA's closed successfully..")
     }else{
       console.log(result.error);
-      
       toast.error("Failed to closed Account");
     }
   }
+
 
   if (!isClient || !sellerPubkeyString) {
     return (
@@ -192,7 +176,6 @@ export default function PaymentPage() {
       </div>
     );
   }
-
   return (
     <div>
       <Appbar />
@@ -240,16 +223,6 @@ export default function PaymentPage() {
               </motion.div>
             </div>
           )}
-            <div className="flex items-center justify-center bg-zinc-900 rounded-xl my-2 py-2 gap-1 font-bold text-red-700">
-              <motion.div
-                initial={{opacity:0, y:20}}
-                animate={{opacity:1, y:0}} 
-                transition={{duration:0.2}}
-                className="flex items-center gap-1"
-              >
-                <button onClick={handleCloseAccount}>Cancel</button>
-              </motion.div>
-            </div>
         </div>
       </div>
     </div>
