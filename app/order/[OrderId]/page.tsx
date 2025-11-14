@@ -12,8 +12,8 @@ const myFont = localFont({
 });
 export default function Order() {
     const router = useRouter();
-    const {OrderPubkey} = useParams();
-    console.log("Order PublicKey: ", OrderPubkey);
+    const {OrderId} = useParams();
+    console.log("Order Id: ", OrderId);
     useEffect(() => {
         setTimeout(() => import("canvas-confetti").then((c) => c.default()), 1000);
       }, []);
@@ -27,8 +27,9 @@ export default function Order() {
                 </div>
                 <div className="relative bottom-10 flex flex-col justify-center items-center">
                     <h1 className={`${myFont.className} text-6xl font-semibold text-green-600`}>Order Confirmed!</h1>
-                    <p className="text-gray-200 mt-2">Thank you for your purchase 🎉</p>
-                    <button onClick={()=>router.push(`/order/${OrderPubkey}/order-details`)} className="cursor-pointer flex items-center py-2 mt-10 pr-2 pl-4 border rounded-xl bg-white text-zinc-900 font-semibold">
+                    <p className="text-gray-200 text-md mt-2">Thank you for your purchase 🎉</p>
+                    <p className="text-zinc-200 text-sm font-semibold">Order ID: <span className="text-zinc-400 text-sm">{OrderId}</span></p>
+                    <button onClick={()=>router.push(`/order/${OrderId}/order-details`)} className="cursor-pointer flex items-center py-2 mt-10 pr-2 pl-4 border rounded-xl bg-white text-zinc-900 font-semibold">
                          More Details
                          <ChevronRight/>
                     </button>
