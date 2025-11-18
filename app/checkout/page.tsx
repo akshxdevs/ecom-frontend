@@ -3,7 +3,6 @@ import { AnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
-import { useSellerPubkey } from "../cart/page";
 import { Appbar } from "../Components/Appbar";
 import { getSolPrice } from "../utils/getSolPrice";
 import { Dot, ShoppingBagIcon } from "lucide-react";
@@ -12,14 +11,12 @@ import { BiSolidCube } from "react-icons/bi";
 import SolanaPayQR from "../Components/SolanaPayQR";
 import { MdDone } from "react-icons/md";
 import { motion } from "framer-motion";
-import { Escrow } from "@/ecom-sdk/escrow";
-
+import { Escrow } from "ecom-sdk"
+import { useSellerPubkey } from "../utils/contexts/sellerPubkeyContext";
 
 export default function PaymentPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [isClient, setIsClient] = useState(false);
-  const [withdraw, setWithdraw] = useState(false);
-  const [orderPda, setOrderPda] = useState<PublicKey | undefined>(undefined);
   const [paymentPda, setPaymentPda] = useState<string | undefined>(undefined);
   const [escrowPda, setEscrowPda] = useState<PublicKey | undefined>(undefined);
   const [vaultStatePda, setVaultStatePda] = useState<PublicKey | undefined>(undefined);
@@ -27,7 +24,6 @@ export default function PaymentPage() {
 
   const [sol, setSol] = useState<string | undefined>(undefined);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [showCancelBtn,setShowCancelBtn] = useState(false);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
@@ -106,14 +102,14 @@ export default function PaymentPage() {
         if (deposit.escrow) setEscrowPda(new PublicKey(deposit.escrow));
         if (deposit.vaultState) setVaultStatePda(new PublicKey(deposit.vaultState));
         if (deposit.vault) setVaultPda(new PublicKey(deposit.vault));
-        await escrow.initOrder(walletAdapter as AnchorWallet).then((order)=>{
-          if (order.success) toast.success("Order Placed Successfully..")
-            const OrderId = order.orderId
+        await escrow.initOrder(walletAdapter as AnchorWallet).then((order:any)=>{
+          if (order.success) {
+            toast.success("Order Placed Successfully..");
+            const OrderId = order.orderId;
+            setPaymentSuccess(true);
             router.push(`/order/${OrderId}`)
-           setTimeout(() => {
-            closeAccount();
-           }, 10000);
-        }).catch((err)=>{
+          };
+        }).catch((err:Error)=>{
           console.log("Order Failed",(err as Error).message);
           toast.error("Failed to place order..")
         }); 
