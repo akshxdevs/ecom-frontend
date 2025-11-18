@@ -5,7 +5,7 @@ import {
   fetchCartList,
   fetchProduct,
   fetchCart,
-} from "@/ecom-sdk/program";
+} from "ecom-sdk";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
