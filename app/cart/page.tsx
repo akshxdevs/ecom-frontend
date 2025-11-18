@@ -1,16 +1,15 @@
 "use client";
-import { fetchCart, fetchCartList } from "@/ecom-sdk/program";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { motion } from "framer-motion";
 import { Appbar } from "../Components/Appbar";
-import { IoBagCheckOutline } from "react-icons/io5";
-import { BiMoney } from "react-icons/bi";
 import localFont from "next/font/local";
 import { Dot, MinusCircleIcon, PlusCircleIcon, Trash } from "lucide-react";
 import nProgress from "nprogress";
+import { fetchCart, fetchCartList } from "ecom-sdk";
+import { useSellerPubkey } from "../utils/contexts/sellerPubkeyContext";
 
 const myFont = localFont({
   src: '../../public/fonts/Palmore.otf',
@@ -26,49 +25,6 @@ interface Cart {
   productImgurl: string;
   quantity: number;
 }
-
-interface SellerPublicKey{
-  sellerPubkey:PublicKey;
-  setSellerPubkey:(value:any)=>void;
-}
-
-export const SellerPubkeyContext = createContext<
-  SellerPublicKey | undefined
->(undefined);
-
-export const SellerPubkeyProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [sellerPubkey, setSellerPubkey] = useState<any>(()=>{
-    if (typeof window !== "undefined"){
-      const stored = localStorage.getItem("sellerPubkey");
-      return stored ? JSON.parse(stored) : [];
-    }return [];
-  });
-
-  useEffect(()=>{
-    if (sellerPubkey.length > 0) {
-      localStorage.setItem("sellerPubkey",JSON.stringify(sellerPubkey));
-    }
-  },[sellerPubkey])
-
-  return (
-    <SellerPubkeyContext.Provider value={{ sellerPubkey, setSellerPubkey }}>
-      {children}
-    </SellerPubkeyContext.Provider>
-  );
-};
-
-export const useSellerPubkey = () => {
-  const context = useContext(SellerPubkeyContext);
-  if (context === undefined) {
-    throw new Error("useCartLength must be used within a sellerPubkeyProvider");
-  }
-  return context;
-};
-
 
 export default function Cart() {
   const [error, setError] = useState<string | null>(null);
