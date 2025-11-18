@@ -1,10 +1,10 @@
 "use client";
-import { createContext, useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {useWallet } from "@solana/wallet-adapter-react";
 import { 
   fetchAllProductsFromSeller,
   initCreateProduct 
-} from "../../ecom-sdk/program";
+} from "ecom-sdk";
 import { motion } from "framer-motion";
 import { Appbar } from "../Components/Appbar";
 import { FaTools } from "react-icons/fa";
@@ -12,6 +12,9 @@ import { GrOverview } from "react-icons/gr";
 import { MdSell } from "react-icons/md";
 import { RiBankCardFill } from "react-icons/ri";
 import { TbShoppingCartStar } from "react-icons/tb";
+import { useShowCreateModal } from "../utils/contexts/showCreateModelContext";
+import { useSelector } from "../utils/contexts/selectContext";
+
 interface Product {
   pubkey: string;
   productId: number[];
@@ -28,51 +31,7 @@ interface Product {
   stockStatus: any;
 }
 
-interface CreateProdContextType {
-  showCreateModal: boolean;
-  setShowCreateModal: (value: boolean) => void;
-}
-
-interface Select{
-  selected:string ;
-  setSelected:(value:string) => void;
-}
-export const CreateProdContext = createContext<CreateProdContextType | undefined>(undefined);
-
-export function CreateProdProvider({ children }: { children: React.ReactNode }) {
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
-  return (
-    <CreateProdContext.Provider value={{ showCreateModal, setShowCreateModal }}>
-      {children}
-    </CreateProdContext.Provider>
-  );
-}
-export const useShowCreateModal = () => {
-  const context = useContext(CreateProdContext);
-  if (context === undefined) {
-    throw new Error('useShowCreateModal must be used within a CreateProdProvider');
-  }
-  return context;
-};
-export const selectContext = createContext<Select | undefined>(undefined);
-
-export function SelectProvider({children}: {children:React.ReactNode}) {
-    const [selected,setSelected] = useState("overview");
-
-    return( 
-        <selectContext.Provider value={{selected,setSelected}}>{children}</selectContext.Provider>
-    );
-}
-
-export const useSelector = () => {
-    const context = useContext(selectContext);
-    if (context === undefined) {
-      throw new Error('useSelector must be used within a SelectProvider');
-    }
-    return context;
-}
-function CreateProductPage(){
+export default function CreateProductPage(){
   const { publicKey, signTransaction, signAllTransactions } = useWallet();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -481,15 +440,5 @@ function CreateProductPage(){
         </div>
       )}
     </div>
-  );
-}
-
-export default function CreateProductPageWrapper() {
-  return (
-    <CreateProdProvider>
-      <SelectProvider>
-        <CreateProductPage />
-      </SelectProvider>
-    </CreateProdProvider>
   );
 }
