@@ -1,5 +1,5 @@
 "use client";
-import { fetchAllProducts, fetchCartList } from "@/ecom-sdk/program";
+import { fetchAllProducts, fetchCartList } from "ecom-sdk";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
