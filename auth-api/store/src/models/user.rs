@@ -1,7 +1,8 @@
-use sqlx::{FromRow, PgPool, Type};
 use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
+use sqlx::{FromRow, PgPool, Type};
+use std::fmt;
 use uuid::Uuid;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, FromRow, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -9,7 +10,7 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub password_hash: String,
-    pub role: UserRole,              
+    pub role: UserRole,
     pub created_at: NaiveDateTime,
 }
 
@@ -21,14 +22,25 @@ pub enum UserRole {
     Delivery,
 }
 
+impl fmt::Display for UserRole {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let role_str = match self {
+            UserRole::Customer => "customer",
+            UserRole::Seller => "seller",
+            UserRole::Delivery => "delivery",
+        };
+        write!(f, "{}", role_str)
+    }
+}
+
 impl User {
     pub async fn create(
         pool: &PgPool,
         username: &str,
         email: &str,
         password_hash: &str,
+        role: UserRole,
     ) -> Result<Self, sqlx::Error> {
-        let role = UserRole::Customer;
         let user = sqlx::query_as::<_, User>(
             r#"
             INSERT INTO users (username, email, password_hash, role)
@@ -41,6 +53,21 @@ impl User {
         .bind(password_hash)
         .bind(&role)
         .fetch_one(pool)
+        .await?;
+
+        Ok(user)
+    }
+
+    pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<Self>, sqlx::Error> {
+        let user = sqlx::query_as::<_, User>(
+            r#"
+            SELECT id, username, email, password_hash, role, created_at
+            FROM users
+            WHERE email = $1
+            "#,
+        )
+        .bind(email)
+        .fetch_optional(pool)
         .await?;
 
         Ok(user)

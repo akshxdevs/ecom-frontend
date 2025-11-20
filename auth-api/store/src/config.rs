@@ -1,15 +1,15 @@
-use std::env;
 use dotenvy::dotenv;
+use std::env;
 
-pub struct Config{
-    pub db_url:String,
+pub struct Config {
+    pub db_url: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
         dotenv().ok();
-        let db_url = env::var("DATABASE_URL")
-        .unwrap_or_else(|_| panic!("Please provide the db_url env"));
+        let db_url =
+            env::var("DATABASE_URL").unwrap_or_else(|_| panic!("Please provide the db_url env"));
         Self { db_url }
     }
 }

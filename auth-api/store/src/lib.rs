@@ -1,5 +1,5 @@
-pub mod store;
 pub mod config;
 pub mod models;
+pub mod store;
 
 pub use store::Store;
