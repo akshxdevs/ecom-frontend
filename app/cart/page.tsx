@@ -9,13 +9,10 @@ import localFont from "next/font/local";
 import { Dot, MinusCircleIcon, PlusCircleIcon, Trash } from "lucide-react";
 import nProgress from "nprogress";
 import { fetchCart, fetchCartList } from "ecom-sdk";
-import { useSellerPubkey } from "../utils/contexts/sellerPubkeyContext";
+import { useSellerState } from "../store/sellerPubkeyStore";
 
 const myFont = localFont({
   src: '../../public/fonts/Palmore.otf',
-});
-const myFont2 = localFont({
-  src: '../../public/fonts/PalmoreLight.ttf',
 });
 
 interface Cart {
@@ -31,23 +28,29 @@ export default function Cart() {
   const [cart, setCart] = useState<Cart[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [totalAmount, setTotalAmount] = useState<number>(0);
-  const {sellerPubkey,setSellerPubkey} = useSellerPubkey();
+  const sellerPubkey = useSellerState((s)=>s.sellerPubkey);
+  const setSellerPubkey = useSellerState((s)=>s.setSellerPubkey);
   const [quantities,setQuantities] = useState<{[key:string]:number}>({});
+  const [quantity,setQuantity] = useState<any[]>([]); 
   const router = useRouter();
   const { publicKey, signAllTransactions, signTransaction } = useWallet();
 
 
-  const handleInc = (pubkey:string) => {
+  const handleInc = (pubkey: string, index: number) => {
+    setQuantities(prev => {
+      const hasValue = prev[pubkey] !== undefined;
+      return {
+        ...prev,
+        [pubkey]: hasValue
+          ? prev[pubkey] + 1 
+          : index + 1     
+      };
+    });
+  };
+  const handleDinc = (pubkey: string) => {
     setQuantities(prev => ({
       ...prev,
-      [pubkey]: (prev[pubkey] || 0) + 1,
-    }));
-  };
-
-  const handleDinc = (pubkey:string) => {
-    setQuantities(prev =>({
-      ...prev,
-      [pubkey]:Math.max((prev[pubkey] ||0) -1, 1),
+      [pubkey]: Math.max((prev[pubkey] || 1) - 1, 1),
     }));
   };
 
@@ -65,67 +68,72 @@ export default function Cart() {
     }
     setLoading(true);
     setError(null);
-
     try {
       const result = await fetchCartList(walletAdapter);
-      if (result.success && result.cart) {
-        const cartList = result.cart.cartList || [];
-        const totalAmount = Number(result.cart.totalAmount || 0);
-        setTotalAmount(Math.floor(totalAmount/100));
-
-        const items = await Promise.all(
-          cartList.map(async (cartKeyObj: string) => {
-            if (!cartKeyObj) return null;
-            try {
-              const cartKey = new PublicKey(cartKeyObj);
-              const cartPubkeyString = cartKey.toBase58();
-              const cartDetails = await fetchCart(cartPubkeyString, walletAdapter);
-              if (!cartDetails?.success || !cartDetails?.data) return null;
-              const data = cartDetails.data as any;
-
-              return {
-                productName: data.productName ?? "",
-                amount: data.price ?? data.amount ?? 0,
-                sellerPubkey:
-                  typeof data.sellerPubkey === "string"
-                    ? data.sellerPubkey
-                    : new PublicKey(data.sellerPubkey).toBase58(),
-                productImgurl: data.productImgurl ?? "",
-                quantity: Number(data.quantity ?? 1),
-              } as Cart;
-            } catch (err) {
-              console.error("Error converting or fetching cart/product:", err);
-              return null;
-            }
-          })
-        );
-
-        const validItems = items.filter(Boolean) as Cart[];
-        setCart(validItems);
-      } else {
-        console.log("No products found or error occurred:", result.error);
-        setTotalAmount(0);
+      if (!result.success || !result.cart) {
+          setCart([]); 
+          setTotalAmount(0);
+          return;
       }
-    } catch (err: any) {
-      console.error("Error loading products:", err);
+      const cartList = result.cart.cartList || [];
+      const totalAmount = Math.floor(Number(result.cart.totalAmount || 0) / 100);
+      const rawItemsPromises = cartList.map(async (cartKeyObj: string) => {
+      if (!cartKeyObj) return null;
+      try {
+          const cartKey = new PublicKey(cartKeyObj);
+          const cartPubkeyString = cartKey.toBase58();
+          const cartDetails = await fetchCart(cartPubkeyString, walletAdapter);
+          if (!cartDetails?.success || !cartDetails?.data) return null;
+          const data = cartDetails.data as any; 
+          return {
+            productName: data.productName ?? "",
+            amount: data.price ?? data.amount ?? 0,
+            sellerPubkey:
+                typeof data.sellerPubkey === "string"
+                ? data.sellerPubkey
+                : new PublicKey(data.sellerPubkey).toBase58(),
+            productImgurl: data.productImgurl ?? "",
+            quantity: Number(data.quantity ?? 1),
+            cartPubkey: cartPubkeyString,
+            } as Cart;
+      } catch (err) {
+            console.error("Error fetching cart item:", err);
+            return null;
+        }
+      });
+
+      const rawItems = (await Promise.all(rawItemsPromises)).filter(Boolean) as Cart[];
+      const groupedMap = new Map<string, Cart>();
+      rawItems.forEach(item => {
+      const key = `${item.sellerPubkey}-${item.productName}`;
+      if (groupedMap.has(key)) {
+          const existing = groupedMap.get(key)!;
+          existing.quantity += item.quantity;
+          const groupedArray = Array.from(groupedMap.values());
+          setQuantity(groupedArray);          
+      } else {
+          groupedMap.set(key, { ...item });
+      }
+      });
+      const groupedItems = Array.from(groupedMap.values());
+      setCart(groupedItems);
+      setTotalAmount(totalAmount);
+      } catch (err: any) {
+      console.error("Error loading cart:", err);
       setCart([]);
       setTotalAmount(0);
-      setError(err.message || "Failed to load products");
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
+      setError(err.message || "Failed to load cart");
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     if (publicKey) {
       loadCartList();
     }
   }, [publicKey]);
-  
-  
+
   useEffect(()=>{
     if (cart && cart.length > 0) {
       const sellerPubkeys = cart.map((pubkey)=>pubkey.sellerPubkey);
@@ -138,6 +146,15 @@ export default function Cart() {
   useEffect(() => {
     console.log("Updated Seller PubKeys:", sellerPubkey);
   }, [sellerPubkey]);
+  useEffect(()=>{
+    console.log({sellerPubkey});
+  },[sellerPubkey]);
+
+  const fetchQuantity = (productName: string) => {
+    const matched = quantity.filter(item => item.productName === productName);
+    const total = matched.reduce((sum, item) => sum + item.quantity, 0);
+    return total;
+  };
 
   return (
     <div>
@@ -185,10 +202,10 @@ export default function Cart() {
                 <h1 className="text-sm font-normal text-center border-b border-l border-r border-zinc-700 pb-2">QUANTITY</h1>
                 <div className="flex items-center justify-center h-screen gap-4">
                   <div className="px-4 py-2 w-20 flex items-center gap-2 border border-zinc-800 rounded-sm">
-                    <button onClick={()=>handleInc(String(product.productName))}>
+                    <button onClick={()=>handleInc(String(product.productName),fetchQuantity(product.productName))}>
                       <PlusCircleIcon size={15}/>
                     </button>
-                    <p>{quantities[String(product?.productName)] || 1}</p>
+                    <p>{quantities[String(product?.productName)] || fetchQuantity(product.productName)}</p>
                     <button onClick={()=>handleDinc(String(product?.productName))}>
                       <MinusCircleIcon size={15}/>
                     </button>
