@@ -13,6 +13,8 @@ import { MdDone } from "react-icons/md";
 import { motion } from "framer-motion";
 import { Escrow } from "ecom-sdk"
 import { useSellerPubkey } from "../utils/contexts/sellerPubkeyContext";
+import { useVaultState } from "../store/vaultStore";
+import { useSellerState } from "../store/sellerPubkeyStore";
 
 export default function PaymentPage() {
   const [totalAmount, setTotalAmount] = useState<number>(0);
@@ -25,8 +27,15 @@ export default function PaymentPage() {
   const [sol, setSol] = useState<string | undefined>(undefined);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [showCancelBtn,setShowCancelBtn] = useState(false);
+  const vault = useVaultState((s) => s.vault);
+  const setVault = useVaultState((s) => s.setVault);
+  const vaultState = useVaultState((s) => s.stateVault);
+  const setVaultState = useVaultState((s) => s.setStateVault);
+  const setStoreSellerPubkey = useSellerState((s)=> s.setSellerPubkey);
   const walletAdapter = useWallet();
   const { sellerPubkey } = useSellerPubkey();
+  console.log(sellerPubkey);
+  
   const router = useRouter();
 
   const normalizedSellerPubkey = useCallback(() => {
@@ -38,7 +47,7 @@ export default function PaymentPage() {
   }, [sellerPubkey]);
 
   const sellerPubkeyString = normalizedSellerPubkey()?.toString();
-
+  setStoreSellerPubkey(sellerPubkeyString);
   useEffect(() => {
     setIsClient(true);
     if (typeof window === "undefined") return;
@@ -66,6 +75,8 @@ export default function PaymentPage() {
 
     const escrow = new Escrow(walletAdapter);
     try {
+      // const closeOrder = await escrow.closeOrder(walletAdapter as AnchorWallet);
+      // if (closeOrder.success) return toast.success("order closed");  
       const payment = await escrow.initPayment(
         walletAdapter as AnchorWallet,
         totalAmount
@@ -102,12 +113,15 @@ export default function PaymentPage() {
         if (deposit.escrow) setEscrowPda(new PublicKey(deposit.escrow));
         if (deposit.vaultState) setVaultStatePda(new PublicKey(deposit.vaultState));
         if (deposit.vault) setVaultPda(new PublicKey(deposit.vault));
+
         await escrow.initOrder(walletAdapter as AnchorWallet).then((order:any)=>{
           if (order.success) {
             toast.success("Order Placed Successfully..");
             const OrderId = order.orderId;
             setPaymentSuccess(true);
-            router.push(`/order/${OrderId}`)
+            setTimeout(() => {
+              router.push(`/order/${OrderId}`);
+            }, 2000);
           };
         }).catch((err:Error)=>{
           console.log("Order Failed",(err as Error).message);
@@ -122,28 +136,18 @@ export default function PaymentPage() {
     }
   });
 
-  const closeAccount = async() => {
-    const escrow = new Escrow(walletAdapter);
-    console.log(paymentPda?.toString());
-    console.log(escrowPda?.toString());
-    console.log(vaultStatePda?.toString());
-    console.log(vaultPda?.toString());
-    if (!paymentPda || !escrowPda || !vaultPda || !vaultStatePda) throw new Error("PDA messing...")
-    const result = await escrow.closeAccounts(
-      walletAdapter as AnchorWallet,
-      new PublicKey(paymentPda),
-      new PublicKey(escrowPda),
-      new PublicKey(vaultStatePda),
-      new PublicKey(vaultPda),
-    );
-    if (result.success) {
-      toast.success("PDA's closed successfully..")
-    }else{
-      console.log(result.error);
-      toast.error("Failed to closed Account");
+ 
+  useEffect(()=>{
+    try {
+      if (vaultPda) setVault(vaultPda);
+      if (vaultStatePda) setVaultState(vaultStatePda);
+      console.log({vault});
+      console.log({vaultStatePda});
+    } catch (error) {
+      console.error("Not Found!",(error as Error).message);
     }
-  }
-
+    
+  },[vaultPda,vaultStatePda])  
 
   if (!isClient || !sellerPubkeyString) {
     return (
@@ -200,25 +204,22 @@ export default function PaymentPage() {
               label="BlockBazzar"
             />
           </div>
-          <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold">
-            <BiSolidCube/>
-            <button className="cursor-pointer" onClick={()=>{
-              handlePayment()
-              setShowCancelBtn(true)}}>Pay</button>
-          </div>
-          {paymentSuccess && (
-            <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold text-green-700 ">
-              <motion.div
-                initial={{opacity:0, y:20}}
-                animate={{opacity:1, y:0}} 
-                transition={{duration:0.2}}
-                className="flex items-center gap-1"
-              >
-                <MdDone/>
-                <button onClick={handlePayment}>Paid</button>
-              </motion.div>
+            <div className="flex items-center justify-center bg-zinc-900 rounded-xl py-2 gap-1 font-bold">
+                { paymentSuccess ? 
+                  <motion.div
+                  initial={{opacity:0, y:20}}
+                  animate={{opacity:1, y:0}} 
+                  transition={{duration:0.2}}
+                  className="flex items-center gap-1"
+                >
+                  <MdDone size={22} className="text-green-500"/>
+                </motion.div>
+                : <BiSolidCube />}
+              <button className="cursor-pointer" onClick={()=>{
+                handlePayment()
+                setShowCancelBtn(true)}}>Pay
+              </button>
             </div>
-          )}
         </div>
       </div>
     </div>
