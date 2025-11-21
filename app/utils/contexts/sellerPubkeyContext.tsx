@@ -1,3 +1,5 @@
+"use client";
+
 import { PublicKey } from "@solana/web3.js";
 import { createContext, useContext, useEffect, useState } from "react";
 
