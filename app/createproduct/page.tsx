@@ -1,19 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
-import {useWallet } from "@solana/wallet-adapter-react";
+import { AnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import { 
+  Escrow,
   fetchAllProductsFromSeller,
   initCreateProduct 
 } from "ecom-sdk";
 import { motion } from "framer-motion";
 import { Appbar } from "../Components/Appbar";
-import { FaTools } from "react-icons/fa";
 import { GrOverview } from "react-icons/gr";
 import { MdSell } from "react-icons/md";
 import { RiBankCardFill } from "react-icons/ri";
 import { TbShoppingCartStar } from "react-icons/tb";
 import { useShowCreateModal } from "../utils/contexts/showCreateModelContext";
 import { useSelector } from "../utils/contexts/selectContext";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { BiPurchaseTag } from "react-icons/bi";
+import toast from "react-hot-toast";
 
 interface Product {
   pubkey: string;
@@ -32,14 +36,21 @@ interface Product {
 }
 
 export default function CreateProductPage(){
-  const { publicKey, signTransaction, signAllTransactions } = useWallet();
+  const wallet = useWallet();
+  const { publicKey, signTransaction, signAllTransactions } = wallet;
+  const walletAdapter = useWallet();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { showCreateModal, setShowCreateModal } = useShowCreateModal();
   const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const {selected,setSelected} = useSelector();
-  
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [showUpdateOrderModal, setShowUpdateOrderModal] = useState(false);
+  const [trackingStatus, setTrackingStatus] = useState("WatingForOrders");
+
   const [formData, setFormData] = useState({
     productName: "",
     productShortDescription: "",
@@ -175,10 +186,42 @@ export default function CreateProductPage(){
     return Object.keys(stockStatus)[0] || "Unknown";
   };
 
+  const handleUpdateOrder = async () => {
+    if (!wallet?.publicKey) {
+      setError("Connect your wallet before updating orders");
+      toast.error("Wallet not connected");
+      return;
+    }
+    if (!trackingStatus) {
+      setError("Select a tracking status before updating");
+      return;
+    }
+    setUpdating(true);
+    setError(null);
+    console.log(trackingStatus);
+    
+    try {
+      const escrow = new Escrow(wallet);
+      const result = await escrow.updateOrder(walletAdapter as AnchorWallet, trackingStatus);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update order");
+      }
+      toast.success("Order status updated");
+      setTrackingStatus("WatingForOrders");
+      setShowUpdateOrderModal(false);
+    } catch (err: any) {
+      const message =
+        err?.message || "Unable to update the order right now.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+  
   return (
     <div>
       <div
-
         className="pb-1 border-b border-gray-800"
       >
         <Appbar/>
@@ -201,9 +244,9 @@ export default function CreateProductPage(){
                         <TbShoppingCartStar/>
                         <button onClick={()=>setSelected("products")}>My Products</button>
                     </div>
-                    <div className={`flex items-center gap-3 text-md px-2 py-1 rounded-lg ${selected === "tools" ? "text-[#016cff] bg-[#eaf5fe]" : "hover:bg-zinc-700"}`}>
-                        <FaTools/>
-                        <button onClick={()=>setSelected("tools")}>Growth tools</button>
+                    <div className={`flex items-center gap-3 text-md px-2 py-1 rounded-lg ${selected === "orders" ? "text-[#016cff] bg-[#eaf5fe]" : "hover:bg-zinc-700"}`}>
+                        <BiPurchaseTag/>
+                        <button onClick={()=>setSelected("orders")}>Orders</button>
                     </div>
                     <div className={`flex items-center gap-3 text-md px-2 py-1 rounded-lg ${selected === "bill" ? "text-[#016cff] bg-[#eaf5fe]" : "hover:bg-zinc-700"}`}>
                         <RiBankCardFill/>
@@ -213,11 +256,11 @@ export default function CreateProductPage(){
             </div>        
         </div>
         <div className="w-[80%] mt-10 mx-10">
-          {selected === "overview" &&(
+          {selected === "overview" && session && (
             <div>
               <motion.button
                   onClick={() => setShowCreateModal(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                  className="px-6 py-3 bg-gradient-to-l from-zinc-600 to-zinc-900 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -430,13 +473,83 @@ export default function CreateProductPage(){
                 <button
                   onClick={handleCreateProduct}
                   disabled={creating}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                  className="flex-1 px-6 py-3 bg-zinc-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
                 >
                   {creating ? "Creating..." : "Create Product"}
                 </button>
               </div>
             </div>
           </motion.div>
+        </div>
+      )}
+      {showUpdateOrderModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-800">Update Order Status</h2>
+                <button
+                  onClick={() => setShowUpdateOrderModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Tracking Status
+                    </label>
+                    <select
+                      value={trackingStatus}
+                      onChange={(e) => setTrackingStatus(e.target.value)}
+                      className="w-full px-4 py-2 border text-black border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    >
+                      <option value="intransit">In Transit</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="outfordelivery">Out For Delivery</option>
+                      <option value="delivered">Delivered</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={() => setShowUpdateOrderModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-300"
+                  disabled={updating}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateOrder}
+                  disabled={updating}
+                  className="flex-1 px-6 py-3 bg-zinc-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                >
+                  {updating ? "Updating..." : "Update Order"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+      { selected === "orders" && session ? (
+        <div className="w-fit relative bottom-[650px] left-80 overflow-hidden">
+            <h1 className="text-2xl">Hello {session.user?.name}!</h1>
+            <div>
+              <h1 className="pt-10 text-xl font-bold">Update Order Status</h1>
+                <button onClick={() => setShowUpdateOrderModal(true)} className="px-4 py-2 mt-3 bg-white/95 text-black rounded-lg">Update Order</button>
+              </div>
+        </div>
+      ):(
+        <div className="w-fit relative bottom-32 left-80 overflow-hidden">
+          <button onClick={()=> router.push("/signin")} className="px-4 py-2 bg-white/95 text-black rounded-lg">Add Email</button>
         </div>
       )}
     </div>
