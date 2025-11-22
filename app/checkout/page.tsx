@@ -47,7 +47,12 @@ export default function PaymentPage() {
   }, [sellerPubkey]);
 
   const sellerPubkeyString = normalizedSellerPubkey()?.toString();
-  setStoreSellerPubkey(sellerPubkeyString);
+  useEffect(() => {
+    if (sellerPubkeyString) {
+      setStoreSellerPubkey(sellerPubkeyString);
+    }
+  }, [sellerPubkeyString, setStoreSellerPubkey]);
+
   useEffect(() => {
     setIsClient(true);
     if (typeof window === "undefined") return;
@@ -146,7 +151,6 @@ export default function PaymentPage() {
     } catch (error) {
       console.error("Not Found!",(error as Error).message);
     }
-    
   },[vaultPda,vaultStatePda])  
 
   if (!isClient || !sellerPubkeyString) {
