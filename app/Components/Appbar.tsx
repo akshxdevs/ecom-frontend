@@ -36,13 +36,6 @@ export const Appbar = () => {
     const [paymentPda, setPaymentPda] = useState<string | undefined>(undefined);
     const [escrowPda, setEscrowPda] = useState<PublicKey | undefined>(undefined);
     const [closeAccounts,setCloseAccounts] = useState(false);
-    useEffect(()=>{
-        console.log({withdrawTrue});
-    },[withdrawTrue]);
-
-    useEffect(()=>{
-        console.log({sellerPubkey});
-    },[sellerPubkey]);
 
     useEffect(()=>{
         fetchBalance();
@@ -57,11 +50,6 @@ export const Appbar = () => {
             
         }
     };
-    console.log({sellerPubkey});
-    console.log({vaultPda});
-    console.log({vaultStatePda});
-    console.log({escrowPda});
-    console.log({paymentPda});
     const withdrawlEscrow = async() => {
         if (!sellerPubkey) return toast.error("Seller information not available");
         console.log({sellerPubkey});
@@ -94,10 +82,18 @@ export const Appbar = () => {
             console.error(error);
         }
     }
-
+    console.log({vaultPda});
+    console.log({vaultStatePda});
+    console.log({escrowPda});
+    console.log({paymentPda});
     const closeAccount = async() => {
         const escrow = new Escrow(walletAdapter);
+        console.log({vaultPda});
+        console.log({vaultStatePda});
+        console.log({escrowPda});
+        console.log({paymentPda});
         if (!paymentPda || !escrowPda || !vaultPda || !vaultStatePda) throw new Error("PDA messing...")
+        
         const result = await escrow.closeAccounts(
           walletAdapter as AnchorWallet,
           new PublicKey(paymentPda),
@@ -127,26 +123,20 @@ export const Appbar = () => {
       }
 
       useEffect(() => {
-        if (!closeAccounts) new Error("Not ready yet!"); 
+        if (!closeAccounts) return console.log("Not ready yet!"); 
         let elapsed = 0;
         const interval = setInterval(() => {
-          // Check every 500ms
           elapsed += 500;
-      
-          // If all values exist → run the function
           if (paymentPda && escrowPda && vaultPda && vaultStatePda) {
             closeAccount();
+            closeOrder();
             clearInterval(interval);
           }
-      
-          // Stop after 30 seconds
           if (elapsed >= 30000) {
             console.log("Timeout: PDAs not found in 30s");
             clearInterval(interval);
           }
-      
         }, 500);
-      
         return () => clearInterval(interval); // cleanup
       }, [paymentPda, escrowPda, vaultPda, vaultStatePda]);
       
